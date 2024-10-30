@@ -32,22 +32,32 @@ To install the necessary dependencies, run the following command:
         conda create --name dalmax_gpu python=3.9
         conda activate dalmax_gpu
     ```
- - Install CUDA
-    To install CUDA, follow the instructions on the NVIDIA website: [https://developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads). Select the version compatible with your GPU and operating system. We recommend using CUDA 11.7.
 
+### Install TensorFlow
+#### For GPU users
+- Install CUDA
+    To install CUDA, follow the instructions on the NVIDIA website: [https://developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads). Select the version compatible with your GPU and operating system. We recommend using CUDA 11.7.
+    IF DONT HAVE GPU, YOU CAN USE THE CPU VERSION. SEE BELOW.
+```bash
+    pip install tensorflow[and-cuda]
+```
+#### For CPU users
+```bash
+    pip install tensorflow
+```
+#### Dependencies
  - Install the dependencies on `requirements.txt`.
     ```bash
         pip install -r requirements.txt
     ```
  - Or install the dependencies manually.
     ```bash
-        pip install tensorflow==2.11.0
         pip install numpy
         pip install scikit-learn
         pip install matplotlib
         pip install seaborn
     ```
-    
+
 ## Usage
 
 ### Dataset
