@@ -25,12 +25,18 @@ This project depends on the following libraries:
 - Seaborn
 
 
-## Evnironment Setup
+## Environment Setup
 To install the necessary dependencies, run the following command:
- - Create a virtual environment with Python 3.9.
+
+ - CONDA: Create a virtual environment with Python 3.9.
     ```bash
         conda create --name dalmax_gpu python=3.9
         conda activate dalmax_gpu
+    ```
+ - VENV: Create a virtual environment with Python 3.9.
+    ```bash
+        python3 -m venv dalmax_gpu
+        source tf/bin/activate   
     ```
 
 ### Install TensorFlow
@@ -41,6 +47,11 @@ To install the necessary dependencies, run the following command:
 ```bash
     pip install tensorflow[and-cuda]
 ```
+- Testing TensorFlow with GPU
+    ```python
+        # Verify the installation:
+        python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+    ```
 #### For CPU users
 ```bash
     pip install tensorflow
