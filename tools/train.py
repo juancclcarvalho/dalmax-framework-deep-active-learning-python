@@ -1,25 +1,43 @@
 '''
 Example usage 
-    - random: python train.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type random --epochs 10
-    - train: python train.py --dir_train results/active_learning/uncertainty_sampling/selected_images/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type train --epochs 10
+    - random: python tools/train.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type random --epochs 10
+    - train: python tools/train.py --dir_train results/active_learning/uncertainty_sampling/selected_images/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type train --epochs 10
 '''
 
 import os
+import sys
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-from tensorflow.keras.utils import to_categorical
+# TensorFlow and Sklearn
+from tensorflow.keras.utils import to_categorical # type: ignore
 from sklearn.metrics import accuracy_score
+
+# Add path to root
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Local imports
 from utils.utilities import load_images, plot_metrics, plot_confusion_matrix
-from model_dl import create_model
+from core.model_dl import create_model, create_parallel_model
 import time
 
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-
+def valid_args(args):
+     # Testes de validação
+    if not os.path.exists(args.dir_train):
+        raise ValueError('Train directory not found')
+    
+    if not os.path.exists(args.dir_test):
+        raise ValueError('Test directory not found')
+    
+    if args.epochs <= 0:
+        raise ValueError('Epochs must be greater than 0')
+    
+    if args.type not in ['random', 'train']:
+        raise ValueError('Mode type must be: random or train')
+    
 def main(args):
     # SETTINGS 
     # Dataset paths
@@ -29,10 +47,10 @@ def main(args):
 
     dir_train = args.dir_train
     dir_test = args.dir_test
-    # Deep Learning Loop
     num_epochs = args.epochs
-    print(f"Deep Learning Type: {args.type}")
+    mult_gpu = args.mult_gpu
 
+    print(f"Deep Learning Type: {args.type}")
     print(f"Number of epochs: {num_epochs}")
 
     # DATASET
@@ -95,7 +113,11 @@ def main(args):
     
     # MODEL
     # Create model
-    model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+     # Create model
+    if mult_gpu:
+        model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+    else:
+        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
 
     # TRAINING
     start_time = time.time()
@@ -139,21 +161,18 @@ def main(args):
     print(f"Deep Learning Type: {args.type}")
     print("Done!")
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Active Learning Example')
+    parser = argparse.ArgumentParser(description='DalMax - Framework for Deep Active Learning with TensorFlow 2.0')
     
     # Dataset directories
     parser.add_argument('--dir_train', type=str, default='DATA/DATA_CIFAR10/train/', help='Train dataset directory')
     parser.add_argument('--dir_test', type=str, default='DATA/DATA_CIFAR10/test/', help='Test dataset directory')
     parser.add_argument('--dir_results', type=str, default='results/', help='Results directory')
 
-    # Type of Active Learning
-    parser.add_argument('--type', type=str, default='uncertainty_sampling', help='Active Learning type')
-    
+    parser.add_argument('--type', type=str, default='train', help='Mode type')
     parser.add_argument('--epochs', type=int, default=10, help='Epochs size')
+    parser.add_argument('--mult_gpu', type=bool, default=False, help='Use multiple GPUs')
     args = parser.parse_args()
 
-    # Verifica se o tipo de active learning é válido
-    if args.type not in ['random', 'train']:
-        raise ValueError('Active Learning type must be uncertainty_sampling, query_by_committee or diversity_sampling')
+    valid_args(args)
     
     main(args)

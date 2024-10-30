@@ -1,10 +1,10 @@
 import random
 import numpy as np
+
+# TensorFlow and Sklearn
+import tensorflow as tf
 from sklearn.cluster import KMeans
 from scipy.spatial import distance
-import tensorflow as tf
-# Local imports
-
 
 # Técnicas de Active Learning
 class DalMaxSampler:

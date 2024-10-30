@@ -1,7 +1,7 @@
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten
-from tensorflow.keras.applications import VGG16
+from tensorflow.keras.models import Sequential # type: ignore
+from tensorflow.keras.layers import Dense, Flatten # type: ignore
+from tensorflow.keras.applications import VGG16 # type: ignore
 
 # Imprimir a versão do TensorFlow
 print(f"TensorFlow version: {tf.__version__}")

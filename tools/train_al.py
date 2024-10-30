@@ -1,67 +1,101 @@
-# Example usage: python train_al.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9
+# Example usage: python tools/train_al.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9
 
+# System imports
 import os
+import sys
 import time
 import argparse
+
+# Data manipulation
 import numpy as np
 import matplotlib.pyplot as plt
 
+# TensorFlow and Sklearn
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import accuracy_score
+from tensorflow.keras.utils import to_categorical # type: ignore
+
+# Add path to root
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Local imports
 from utils.utilities import load_images, plot_metrics, plot_confusion_matrix
-from model_dl import create_model, create_parallel_model
-from dalmax import DalMaxSampler
+from core.model_dl import create_model, create_parallel_model
+from core.dalmax import DalMaxSampler
 
-colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-
+def valid_args(args):
+     # Testes de validação
+    if not os.path.exists(args.dir_train):
+        raise ValueError('Train directory not found')
+    
+    if not os.path.exists(args.dir_test):
+        raise ValueError('Test directory not found')
+    
+    if args.batch_size <= 0:
+        raise ValueError('Batch size must be greater than 0')
+    
+    if args.iterations <= 0:
+        raise ValueError('Iterations must be greater than 0')
+    
+    if args.test_size <= 0 or args.test_size >= 1:
+        raise ValueError('Test size must be between 0 and 1')
+    
+    # Verifica se o tipo de active learning é válido
+    if args.type not in ['uncertainty_sampling', 'query_by_committee', 'diversity_sampling', 'core_set_selection', 'adversarial_sampling', 'reinforcement_learning_sampling', 'expected_model_change', 'bayesian_sampling']:
+        raise ValueError('Active Learning type must be: uncertainty_sampling, query_by_committee, diversity_sampling, core_set_selection, adversarial_sampling, reinforcement_learning_sampling, expected_model_change or bayesian_sampling')
+    
+    
 def main(args):
     # SETTINGS 
-    # Dataset paths
+    # Vars from args
     dir_results = args.dir_results + f'/active_learning/{args.type}/'
-    if not os.path.exists(dir_results):
-        os.makedirs(dir_results)
-
     dir_train = args.dir_train
     dir_test = args.dir_test
-    # Active Learning Loop
+
     batch_size = args.batch_size
     iterations = args.iterations
     test_size = args.test_size
     type_active_learning = args.type
-    print(f"Deep Learning Type: {args.type}")
+    mult_gpu = args.mult_gpu
+
+    # Setup dir results
+    if not os.path.exists(dir_results):
+        os.makedirs(dir_results)
+    
+    print(f"Initializating DalMax")
+    print(f"Deep Learning Type Model: {args.type}")
+    print(f"Parameters: batch_size: {batch_size}, iterations: {iterations}, test_size: {test_size}")
 
     # DATASET
     # Load dataset and preprocess
     images, labels, label_map, paths_images = load_images(dir_train)
     print(f"Classes label_map train: {label_map}")
-
-
+    # Norm
     images = images / 255.0
     labels = to_categorical(labels, num_classes=len(label_map))
 
     # Split data
     train_images, pool_images, train_labels, pool_labels = train_test_split(images, labels, test_size=test_size, random_state=42)
-    # Imprimir quantas imagens estão no conjunto de treino e no conjunto de pool
-    print(f"Train Size: {len(train_images)} Pool Size: {len(pool_images)}")
-    # Imprimir as porcentagens de cada classe no conjunto de treino
+    
+    print(f"Percentage of train images:")
     for label_name, label_idx in label_map.items():
         print(f"{label_name}: {np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%")
-
+    
     # MODEL
     # Create model
-    model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+    if mult_gpu:
+        model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+    else:
+        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
 
-    # TRAINING
+    # START TRAINING
     start_time = time.time()
-    
     final_weighted_history = None
+
     for i in range(iterations):
         try: 
             print(f"Iteration {i+1}/{iterations}")
-            print(f"Train Size: {len(train_images)} Pool Size: {len(pool_images)}")
+            print(f"Actual Train Size: {len(train_images)} Actual Pool Size: {len(pool_images)}")
             
             selected_al_idx = None
 
@@ -109,6 +143,8 @@ def main(args):
 
             
             print('Selected_idx: ', selected_idx)
+            print(f"New Train Size: {len(train_images)} New Pool Size: {len(pool_images)}")
+            
             # Salve todas as imagens selecionadas em suas devidas pastas em dir_results/selected_images
             if not os.path.exists(f'{dir_results}/selected_images'):
                 os.makedirs(f'{dir_results}/selected_images')
@@ -170,7 +206,7 @@ def main(args):
     print("Done!")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Active Learning Example')
+    parser = argparse.ArgumentParser(description='DalMax - Framework for Deep Active Learning with TensorFlow 2.0')
     
     # Dataset directories
     parser.add_argument('--dir_train', type=str, default='DATA/DATA_CIFAR10/train/', help='Train dataset directory')
@@ -184,10 +220,8 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=10, help='Batch size') # Quantidade de imagens selecionadas por vez do pool
     parser.add_argument('--iterations', type=int, default=5, help='Number of iterations')
     parser.add_argument('--test_size', type=float, default=0.9, help='Test size')
+    parser.add_argument('--mult_gpu', type=bool, default=False, help='Use multiple GPUs')
     args = parser.parse_args()
 
-    # Verifica se o tipo de active learning é válido
-    if args.type not in ['uncertainty_sampling', 'query_by_committee', 'diversity_sampling', 'core_set_selection', 'adversarial_sampling', 'reinforcement_learning_sampling', 'expected_model_change', 'bayesian_sampling']:
-        raise ValueError('Active Learning type must be uncertainty_sampling, query_by_committee or diversity_sampling')
-    
+    valid_args(args)
     main(args)
