@@ -1,10 +1,10 @@
-# DalMax - Deep Active Learning for Maximal Information Gain
+# DalMax - Framework to Deep Active Learning Approaches
 Repository of resources used in my doctoral studies in the area of ​​Deep Active Learning
 
 ![Deep Active Learning Framework](assets/active-learning-framework.png)
 
 ## Methodology Overview
-The Deep Active Learning for Maximal Information Gain (DalMax) is a methodology that aims to select the most informative samples for training a deep learning model. The DalMax methodology is based on heuristic strategies that select the samples that maximize the information gain of the model. The DalMax methodology is composed of this heuristic strategies:
+The Framework to Deep Active Learning Approaches for Maximal Information Gain (DalMax) is a framework that aims to select the most informative samples for training a deep learning model. The DalMax framework is based on heuristic strategies that select the samples that maximize the information gain of the model. The DalMax framework is composed of this heuristic strategies:
 - **Uncertainty Sampling**: Calculate the entropy or confidence margin to select samples.
 - **Diversity Sampling**: Use clustering (e.g., K-means) to select samples that represent the diversity of the dataset.
 - **Query by Committee (QBC)**: Train multiple models and select the samples where there is the greatest disagreement between them.
