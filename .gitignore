@@ -1,5 +1,7 @@
 # My LOCAL Files
-DATA/
+DATA/daninhas
+DATA/DATA_CIFAR10
+
 local_assets/
 results/
 
