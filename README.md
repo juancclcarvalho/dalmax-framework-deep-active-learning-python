@@ -26,9 +26,10 @@ To install the necessary dependencies, run the following command:
 ## Usage
 
 ### Dataset
-This project uses the `cifar10` dataset that is zipped inside the `datasets` folder. It must be unzipped inside the `DATA` folder.
+This project uses the [CIFAR 10](https://www.cs.toronto.edu/~kriz/cifar.html) dataset. 
+Download the dataset zip CIFAR10 from [https://drive.google.com/file/d/1xNQS9QngkoxOPyQhtG6PzbAr9b83Bmk7/view?usp=sharing](https://drive.google.com/file/d/1xNQS9QngkoxOPyQhtG6PzbAr9b83Bmk7/view?usp=sharing). It must be unzipped inside the `DATA` folder.
 ```bash
-    unzip datasets/cifar10.zip -d DATA
+    unzip DATA_CIFAR10.zip -d DATA
 ```
 Structure of the dataset:
 ```
