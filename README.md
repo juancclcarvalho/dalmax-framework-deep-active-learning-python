@@ -59,7 +59,7 @@ DATA/
 ### Training Deep Active Learning Models
 To train the models, run the following command:
 ```bash
-    python tools/train_al.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9
+    python tools/train_al.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9 --mult_gpu True
 ```
 #### Parameters
 - `dir_train`: Path to the training dataset.
@@ -69,6 +69,7 @@ To train the models, run the following command:
 - `batch_size`: Number of samples to be selected in each iteration.
 - `iterations`: Number of iterations.
 - `test_size`: Proportion of the test dataset.
+- `mult_gpu`: Use multiple GPUs. Optional. If `True`, the model is trained with multiple GPUs. If not informed, the model is trained with a single GPU.
 
 #### Results
 The results are saved in the `results` folder. The following files are generated:
@@ -86,13 +87,13 @@ To train the models, you can select on RANDOM or ACTIVE mode. In the RANDOM mode
 
 #### Random Mode
 ```bash
-    python tools/train.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type random --epochs 10
+    python tools/train.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type random --epochs 10 --mult_gpu True
 ```
 
 #### Active Mode
 ```bash
     # Example of training with the selected images by the core set selection strategy
-    python tools/train.py --dir_train YOUR_RESULTS_FOLDER/active_learning/core_set_selection/selected_images/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type train --epochs 10
+    python tools/train.py --dir_train YOUR_RESULTS_FOLDER/active_learning/core_set_selection/selected_images/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type train --epochs 10 --mult_gpu True
 ```
 
 Parameters:
@@ -101,6 +102,8 @@ Parameters:
 - `dir_results`: Path to save the results.
 - `type`: Training mode. Options: `random`, `train`.
 - `epochs`: Number of epochs.
+- `mult_gpu`: Use multiple GPUs. Optional. If `True`, the model is trained with multiple GPUs. If not informed, the model is trained with a single GPU.
+
 
 ### Testing Deep Learning Models
 To test the models, run the following command:
