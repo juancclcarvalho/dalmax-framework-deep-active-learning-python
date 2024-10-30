@@ -18,18 +18,23 @@ The Framework to Deep Active Learning Approaches for Maximal Information Gain (D
 This project depends on the following libraries:
 - Python 3.9
 - TensorFlow 2.11.0
+- CUDA 11.7
 - Numpy
 - Scikit-learn
 - Matplotlib
-- CUDA 11.7
-  
-## Installation
+- Seaborn
+
+
+## Evnironment Setup
 To install the necessary dependencies, run the following command:
  - Create a virtual environment with Python 3.9.
     ```bash
         conda create --name dalmax_gpu python=3.9
         conda activate dalmax_gpu
     ```
+ - Install CUDA
+    To install CUDA, follow the instructions on the NVIDIA website: [https://developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads). Select the version compatible with your GPU and operating system. We recommend using CUDA 11.7.
+
  - Install the dependencies on `requirements.txt`.
     ```bash
         pip install -r requirements.txt
@@ -40,8 +45,9 @@ To install the necessary dependencies, run the following command:
         pip install numpy
         pip install scikit-learn
         pip install matplotlib
+        pip install seaborn
     ```
-
+    
 ## Usage
 
 ### Dataset
