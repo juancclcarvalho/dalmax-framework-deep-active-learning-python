@@ -7,7 +7,7 @@ import tensorflow as tf
 
 
 # Técnicas de Active Learning
-class ActiveLearningSampler:
+class DalMaxSampler:
     @staticmethod
     def random_sampling(pool):
         return random.choice(pool)

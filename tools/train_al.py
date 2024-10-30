@@ -11,9 +11,9 @@ from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import accuracy_score
 
 # Local imports
-from utilities import load_images, plot_metrics, plot_confusion_matrix
-from mymodel import create_model, create_parallel_model
-from dalmax import ActiveLearningSampler
+from utils.utilities import load_images, plot_metrics, plot_confusion_matrix
+from model_dl import create_model, create_parallel_model
+from dalmax import DalMaxSampler
 
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
@@ -67,34 +67,34 @@ def main(args):
 
             # Diversity Sampling
             if type_active_learning == 'diversity_sampling':
-                selected_al_idx = ActiveLearningSampler.diversity_sampling(pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.diversity_sampling(pool_images, batch_size)
             # Query-by-Committee
             elif type_active_learning == 'query_by_committee':
                 committee_models = [create_model(input_shape=train_images.shape[1:], num_classes=len(label_map)) for _ in range(3)]
                 for cm in committee_models:
                     cm.fit(train_images, train_labels, epochs=1, verbose=1)
-                selected_al_idx = ActiveLearningSampler.query_by_committee(committee_models, pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.query_by_committee(committee_models, pool_images, batch_size)
             # Uncertainty Sampling
             elif type_active_learning == 'uncertainty_sampling':
-                selected_al_idx = ActiveLearningSampler.uncertainty_sampling(model, pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.uncertainty_sampling(model, pool_images, batch_size)
             # Core-Set Selection (K-Center)
             elif type_active_learning == 'core_set_selection': 
-                selected_al_idx = ActiveLearningSampler.core_set_selection(model, pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.core_set_selection(model, pool_images, batch_size)
             # Adversarial Active Learning
             elif type_active_learning == 'adversarial_sampling':
-                selected_al_idx = ActiveLearningSampler.adversarial_sampling(model, pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.adversarial_sampling(model, pool_images, batch_size)
             # Reinforcement Learning for Active Learning
             elif type_active_learning == 'reinforcement_learning_sampling':
                 # TODO: Implementar no futuro próximo
                 # Assumindo um agente RL inicializado
-                # selected_al_idx = ActiveLearningSampler.reinforcement_learning_sampling(agent, model, pool_images, batch_size)
+                # selected_al_idx = DalMaxSampler.reinforcement_learning_sampling(agent, model, pool_images, batch_size)
                 pass
             # Expected Model Change
             elif type_active_learning == 'expected_model_change':
-                selected_al_idx = ActiveLearningSampler.expected_model_change(model, pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.expected_model_change(model, pool_images, batch_size)
             # Bayesian Sampling
             elif type_active_learning == 'bayesian_sampling':
-                selected_al_idx = ActiveLearningSampler.bayesian_sampling(model, pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.bayesian_sampling(model, pool_images, batch_size)
             else:
                 raise ValueError('Active Learning type must be uncertainty_sampling, query_by_committee or diversity_sampling')
 

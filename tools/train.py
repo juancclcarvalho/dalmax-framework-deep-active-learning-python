@@ -13,8 +13,8 @@ from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import accuracy_score
 
 # Local imports
-from utilities import load_images, plot_metrics, plot_confusion_matrix
-from mymodel import create_model
+from utils.utilities import load_images, plot_metrics, plot_confusion_matrix
+from model_dl import create_model
 import time
 
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']

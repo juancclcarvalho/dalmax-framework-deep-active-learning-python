@@ -30,11 +30,36 @@ This project uses the `cifar10` dataset that is zipped inside the `datasets` fol
 ```bash
     unzip datasets/cifar10.zip -d DATA
 ```
+Structure of the dataset:
+```
+DATA/
+    DATA_CIFAR10/
+        train/
+            0/
+                1000.png
+                1001.png
+                ...
+            1/
+            2/
+            ...
+            8/
+            9/
+        test/
+            0/
+                1000.png
+                1001.png
+                ...
+            1/
+            2/
+            ...
+            8/
+            9/
+```
 
 ### Training Deep Active Learning Models
 To train the models, run the following command:
 ```bash
-    python train_al.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9
+    python tools/train_al.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9
 ```
 #### Parameters
 - `dir_train`: Path to the training dataset.
@@ -61,12 +86,12 @@ To train the models, you can select on RANDOM or ACTIVE mode. In the RANDOM mode
 
 #### Random Mode
 ```bash
-    python train.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type random --epochs 10
+    python tools/train.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type random --epochs 10
 ```
 
 #### Active Mode
 ```bash
-    python train.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type train --epochs 10
+    python tools/train.py --dir_train YOUR_RESULTS_FOLDER/active_learning/core_set_selection/selected_images/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type train --epochs 10
 ```
 
 Parameters:
@@ -76,7 +101,15 @@ Parameters:
 - `type`: Training mode. Options: `random`, `train`.
 - `epochs`: Number of epochs.
 
-
+### Testing Deep Learning Models
+To test the models, run the following command:
+```bash
+    python tools/test.py --dir_test YOUR_DATASET/test/ --dir_model results/YOUR_model.h5
+```
+Parameters:
+- `dir_test`: Path to the test dataset.
+- `dir_model`: Path to the model.
+  
 ## License
 
 DalMax is under the MIT License. See the [LICENSE](LICENSE) file for more details.
