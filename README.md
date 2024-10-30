@@ -14,14 +14,33 @@ The Framework to Deep Active Learning Approaches for Maximal Information Gain (D
 - **Expected Model Change**: Choose samples that, when labeled, are expected to cause the greatest change in the model.
 - **Bayesian Active Learning**: Use Bayesian methods to model uncertainty and select samples that maximize information gain.
 
+## Dependencies
+This project depends on the following libraries:
+- Python 3.9
+- TensorFlow 2.11.0
+- Numpy
+- Scikit-learn
+- Matplotlib
+- CUDA 11.7
+  
 ## Installation
 To install the necessary dependencies, run the following command:
-
-```bash
-    conda create --name dalmax_gpu python=3.9
-    conda activate dalmax_gpu
-    pip install tensorflow numpy scikit-learn matplotlib
-```
+ - Create a virtual environment with Python 3.9.
+    ```bash
+        conda create --name dalmax_gpu python=3.9
+        conda activate dalmax_gpu
+    ```
+ - Install the dependencies on `requirements.txt`.
+    ```bash
+        pip install -r requirements.txt
+    ```
+ - Or install the dependencies manually.
+    ```bash
+        pip install tensorflow==2.11.0
+        pip install numpy
+        pip install scikit-learn
+        pip install matplotlib
+    ```
 
 ## Usage
 
