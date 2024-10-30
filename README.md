@@ -91,6 +91,7 @@ To train the models, you can select on RANDOM or ACTIVE mode. In the RANDOM mode
 
 #### Active Mode
 ```bash
+    # Example of training with the selected images by the core set selection strategy
     python tools/train.py --dir_train YOUR_RESULTS_FOLDER/active_learning/core_set_selection/selected_images/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type train --epochs 10
 ```
 
