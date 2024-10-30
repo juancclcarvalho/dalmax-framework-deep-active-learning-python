@@ -122,4 +122,4 @@ DalMax is under the MIT License. See the [LICENSE](LICENSE) file for more detail
 
 - Author: Mário de Araújo Carvalho
 - Email: mariodearaujocarvalho@gmail.com
-- Project: [https://github.com/MarioCarvalhoBr/dalmax-deep-active-learning-python](https://github.com/MarioCarvalhoBr/dalmax-deep-active-learning-python)
+- Project: [https://github.com/MarioCarvalhoBr/dalmax-framework-deep-active-learning-python](https://github.com/MarioCarvalhoBr/dalmax-framework-deep-active-learning-python)
