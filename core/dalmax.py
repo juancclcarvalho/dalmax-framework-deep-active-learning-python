@@ -11,6 +11,11 @@ class DalMaxSampler:
     @staticmethod
     def random_sampling(pool):
         return random.choice(pool)
+    
+    @staticmethod
+    def diversity_sampling(pool, batch_size):
+        indices = np.random.choice(len(pool), batch_size, replace=False)
+        return indices
 
     @staticmethod
     def uncertainty_sampling(model, pool, batch_size):
@@ -25,11 +30,6 @@ class DalMaxSampler:
         disagreements = np.sum(votes.argmax(axis=2) != consensus, axis=0)
         return np.argsort(-disagreements)[:batch_size]
 
-    @staticmethod
-    def diversity_sampling(pool, batch_size):
-        indices = np.random.choice(len(pool), batch_size, replace=False)
-        return indices
-    
     # Core-Set Selection (K-Center)
     @staticmethod
     def core_set_selection(model, pool, batch_size):

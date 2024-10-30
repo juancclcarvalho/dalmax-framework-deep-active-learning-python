@@ -106,15 +106,15 @@ def main(args):
             # Diversity Sampling
             if type_active_learning == 'diversity_sampling':
                 selected_al_idx = DalMaxSampler.diversity_sampling(pool_images, batch_size)
+            # Uncertainty Sampling
+            elif type_active_learning == 'uncertainty_sampling':
+                selected_al_idx = DalMaxSampler.uncertainty_sampling(model, pool_images, batch_size)
             # Query-by-Committee
             elif type_active_learning == 'query_by_committee':
                 committee_models = [create_model(input_shape=train_images.shape[1:], num_classes=len(label_map)) for _ in range(3)]
                 for cm in committee_models:
                     cm.fit(train_images, train_labels, epochs=1, verbose=1)
                 selected_al_idx = DalMaxSampler.query_by_committee(committee_models, pool_images, batch_size)
-            # Uncertainty Sampling
-            elif type_active_learning == 'uncertainty_sampling':
-                selected_al_idx = DalMaxSampler.uncertainty_sampling(model, pool_images, batch_size)
             # Core-Set Selection (K-Center)
             elif type_active_learning == 'core_set_selection': 
                 selected_al_idx = DalMaxSampler.core_set_selection(model, pool_images, batch_size)
