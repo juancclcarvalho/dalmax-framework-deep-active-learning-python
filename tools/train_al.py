@@ -1,4 +1,4 @@
-# Example usage: python tools/train_al.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9
+# Example usage: python tools/train_al.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9 --mult_gpu True
 
 # System imports
 import os
@@ -64,7 +64,11 @@ def main(args):
     
     print(f"Initializating DalMax")
     print(f"Deep Learning Type Model: {args.type}")
-    print(f"Parameters: batch_size: {batch_size}, iterations: {iterations}, test_size: {test_size}")
+    print(f"Parameters:")
+    print(f"batch_size: {batch_size}")
+    print(f"iterations: {iterations}")
+    print(f"test_size: {test_size}")
+    print(f"mult_gpu: {mult_gpu}")
 
     # DATASET
     # Load dataset and preprocess

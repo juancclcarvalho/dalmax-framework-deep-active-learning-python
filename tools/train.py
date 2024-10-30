@@ -1,7 +1,7 @@
 '''
 Example usage 
-    - random: python tools/train.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type random --epochs 10
-    - train: python tools/train.py --dir_train results/active_learning/uncertainty_sampling/selected_images/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type train --epochs 10
+    - random: python tools/train.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type random --epochs 10 --mult_gpu True
+    - train: python tools/train.py --dir_train results/active_learning/uncertainty_sampling/selected_images/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type train --epochs 10 --mult_gpu True
 '''
 
 import os
@@ -52,6 +52,7 @@ def main(args):
 
     print(f"Deep Learning Type: {args.type}")
     print(f"Number of epochs: {num_epochs}")
+    print(f"Multiple GPUs: {mult_gpu}")
 
     # DATASET
     # Load dataset and preprocess
