@@ -42,6 +42,10 @@ def valid_args(args):
     
     if args.epochs <= 0:
         raise ValueError('Epochs must be greater than 0')
+
+    if args.use_gpu not in [0, 1]:
+        raise ValueError('Use GPU must be 0 or 1')
+    
     # Verifica se o tipo de active learning é válido
     if args.type not in ['random_sampling','uncertainty_sampling', 'query_by_committee', 'diversity_sampling', 'core_set_selection', 'adversarial_sampling', 'reinforcement_learning_sampling', 'expected_model_change', 'bayesian_sampling']:
         raise ValueError('Active Learning type must be: uncertainty_sampling, query_by_committee, diversity_sampling, core_set_selection, adversarial_sampling, reinforcement_learning_sampling, expected_model_change or bayesian_sampling')
@@ -59,6 +63,7 @@ def task_dalmax(args):
     type_active_learning = args.type
 
     mult_gpu = args.mult_gpu
+    use_gpu = args.use_gpu
 
     # Setup dir results
     if not os.path.exists(dir_results):
@@ -88,7 +93,7 @@ def task_dalmax(args):
     if mult_gpu:
         model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
     else:
-        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map), mult_gpu=mult_gpu, use_gpu=use_gpu)
 
     # START TRAINING
     start_time = time.time()
@@ -128,7 +133,8 @@ def task_dalmax(args):
             selected_al_idx = None
             # Random Sampling
             if type_active_learning == 'random_sampling':
-                selected_al_idx = DalMaxSampler.random_sampling(pool_images, batch_size)
+                # Select batch_size * iterations images from pool
+                selected_al_idx = DalMaxSampler.random_sampling(pool_images, batch_size*iterations)
             # Diversity Sampling
             elif type_active_learning == 'diversity_sampling':
                 selected_al_idx = DalMaxSampler.diversity_sampling(pool_images, batch_size)
@@ -196,6 +202,10 @@ def task_dalmax(args):
             print(f"New Pool Size: {len(pool_images)}")
             print(f"Concluded iteration {i+1}/{iterations}. Next iteration...")
             print("---------------------------------------------")
+
+            # If type_active_learning is random_sampling, break the loop
+            if type_active_learning == 'random_sampling':
+                break
             
         except Exception as e:
             print(f'Stopping iteration {i+1}/{iterations}: {e}')
@@ -228,6 +238,7 @@ def task_train(args):
     dir_test = args.dir_test
 
     mult_gpu = args.mult_gpu
+    use_gpu = args.use_gpu
     num_epochs = args.epochs
 
     # Setup dir results
@@ -265,7 +276,7 @@ def task_train(args):
     if mult_gpu:
         model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
     else:
-        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map), mult_gpu=mult_gpu, use_gpu=use_gpu)
     
     # Treinar o modelo
     weighted_history = model.fit(train_images, train_labels, epochs=num_epochs, verbose=1)
@@ -321,6 +332,8 @@ def main(args):
     print(f"iterations: {args.iterations}")
     print(f"test_size: {args.test_size}")
     print(f"mult_gpu: {args.mult_gpu}")
+    if not args.mult_gpu:
+        print(f"use_gpu: {args.use_gpu}")
     print(f"epochs to train: {args.epochs}")
 
     task_dalmax(args)
@@ -342,6 +355,8 @@ if __name__ == '__main__':
     parser.add_argument('--iterations', type=int, default=5, help='Number of iterations')
     parser.add_argument('--test_size', type=float, default=0.9, help='Test size')
     parser.add_argument('--mult_gpu', type=bool, default=False, help='Use multiple GPUs')
+    parser.add_argument('--use_gpu', type=int, default=0, help='Use GPU: 0 or 1')
+
     parser.add_argument('--epochs', type=int, default=10, help='Epochs size')
 
     args = parser.parse_args()

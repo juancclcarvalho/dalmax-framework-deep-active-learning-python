@@ -1,9 +1,8 @@
 '''
 Example usage 
-    - random: python tools/train.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type random --epochs 10 --mult_gpu True
-    - train: python tools/train.py --dir_train results/active_learning/uncertainty_sampling/selected_images/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type train --epochs 10 --mult_gpu True
+    - random: python tools/train.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type random --epochs 10 --use_gpu 1 --mult_gpu True
+    - train: python tools/train.py --dir_train results/active_learning/uncertainty_sampling/selected_images/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type train --epochs 10 --use_gpu 1 --mult_gpu True
 '''
-
 import os
 import sys
 import argparse
@@ -38,6 +37,9 @@ def valid_args(args):
     if args.type not in ['random', 'train']:
         raise ValueError('Mode type must be: random or train')
     
+    if args.use_gpu not in [0, 1]:
+        raise ValueError('Use GPU must be 0 or 1')
+    
 def main(args):
     # SETTINGS 
     # Dataset paths
@@ -49,6 +51,7 @@ def main(args):
     dir_test = args.dir_test
     num_epochs = args.epochs
     mult_gpu = args.mult_gpu
+    use_gpu = args.use_gpu
 
     print(f"Deep Learning Type: {args.type}")
     print(f"Number of epochs: {num_epochs}")
@@ -108,6 +111,23 @@ def main(args):
         train_images = new_train_images
         train_labels = new_train_labels
 
+        # Save all selected images in their respective folders in dir_results/selected_images
+        if not os.path.exists(f'{dir_results}/selected_images'):
+            print(f"Creating selected_images folder on {dir_results}/selected_images")
+            os.makedirs(f'{dir_results}/selected_images')
+        
+        print(f"Saving selected images in {dir_results}/selected_images")
+        # Criar diretórios para cada classe em selected_images e salvar cada imagem de acordo com a classe
+        for label_name, label_idx in label_map.items():
+            if not os.path.exists(f'{dir_results}/selected_images/{label_name}'):
+                os.makedirs(f'{dir_results}/selected_images/{label_name}')
+            idxs = np.where(train_labels.argmax(axis=1) == label_idx)[0]
+            for idx in idxs:
+                img = train_images[idx]
+                plt.imsave(f'{dir_results}/selected_images/{label_name}/{paths_images[idx].split("/")[-1]}', img)
+
+        print(f"Images saved in {dir_results}/selected_images\n\n")
+
     print("Contagem de arquivos no diretório de treino:")
     for label_name, label_idx in label_map.items():
         print(f"{label_name}: {len(np.where(train_labels.argmax(axis=1) == label_idx)[0])} ({np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%)")
@@ -118,7 +138,7 @@ def main(args):
     if mult_gpu:
         model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
     else:
-        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map), mult_gpu=mult_gpu, use_gpu=use_gpu)
 
     # TRAINING
     start_time = time.time()
@@ -172,6 +192,7 @@ if __name__ == '__main__':
     parser.add_argument('--type', type=str, default='train', help='Mode type')
     parser.add_argument('--epochs', type=int, default=10, help='Epochs size')
     parser.add_argument('--mult_gpu', type=bool, default=False, help='Use multiple GPUs')
+    parser.add_argument('--use_gpu', type=int, default=0, help='Use GPU: 0 or 1')
     args = parser.parse_args()
 
     valid_args(args)

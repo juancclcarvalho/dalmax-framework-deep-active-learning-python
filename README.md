@@ -115,7 +115,7 @@ DATA/
 ### Training Deep Active Learning Models
 To train the models, run the following command:
 ```bash
-    python tools/train_al.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9 --mult_gpu True
+    python tools/train_al.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9  --use_gpu 0 --mult_gpu True
 ```
 #### Parameters
 - `dir_train`: Path to the training dataset.
@@ -126,6 +126,7 @@ To train the models, run the following command:
 - `iterations`: Number of iterations.
 - `test_size`: Proportion of the test dataset.
 - `mult_gpu`: Use multiple GPUs. Optional. If `True`, the model is trained with multiple GPUs. If not informed, the model is trained with a single GPU.
+- `use_gpu`: Use GPU. Optional. If `0`, the model is trained first with the CPU. If `1`, the model is trained with the second GPU. If not informed, the model is trained with the first GPU.
 
 #### Results
 The results are saved in the `results` folder. The following files are generated:
@@ -143,7 +144,7 @@ To train the models, you can select on RANDOM or ACTIVE mode. In the RANDOM mode
 
 #### Random Mode
 ```bash
-    python tools/train.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type random --epochs 10 --mult_gpu True
+    python tools/train.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type random --epochs 10 --mult_gpu True --use_gpu 0
 ```
 
 #### Active Mode
@@ -159,7 +160,7 @@ Parameters:
 - `type`: Training mode. Options: `random`, `train`.
 - `epochs`: Number of epochs.
 - `mult_gpu`: Use multiple GPUs. Optional. If `True`, the model is trained with multiple GPUs. If not informed, the model is trained with a single GPU.
-
+- `use_gpu`: Use GPU. Optional. If `0`, the model is trained first with the CPU. If `1`, the model is trained with the second GPU. If not informed, the model is trained with the first GPU.
 
 ### Testing Deep Learning Models
 To test the models, run the following command:

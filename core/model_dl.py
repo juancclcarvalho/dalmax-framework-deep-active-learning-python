@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import random
 
@@ -48,21 +50,26 @@ class DQNAgent:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
-
-# Imprimir a versão do TensorFlow
-print(f"TensorFlow version: {tf.__version__}")
-print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
-
 def create_parallel_model(input_shape, num_classes):
-     # Construir o modelo dentro do escopo da estratégia de distribuição
+    # Estratégia de distribuição
     strategy = tf.distribute.MirroredStrategy()
+    
     with strategy.scope():
-        model = create_model(input_shape, num_classes)
+        model = create_model(input_shape, num_classes, mult_gpu=True)
     return model
 
 # Função para criar um modelo simples
-def create_model(input_shape, num_classes):
-   
+def create_model(input_shape, num_classes, mult_gpu=False, use_gpu=0):
+
+    if mult_gpu is False:
+        # Defina qual GPU será visível antes de importar o TensorFlow
+        os.environ["CUDA_VISIBLE_DEVICES"] = str(use_gpu)
+
+    # Imprimir a versão do TensorFlow
+    print(f"\n\nTensorFlow version: {tf.__version__}")
+    print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+    print(f"Using GPU: {os.environ.get('CUDA_VISIBLE_DEVICES')}\n\n\n\n\n\n")
+
     base_model = VGG16(weights='imagenet', include_top=False, input_shape=input_shape)
     
     model = Sequential([
