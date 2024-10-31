@@ -86,16 +86,16 @@ def main(args):
             9: 198
             """
             selected_idxs = np.random.choice(idxs, 
-                                                  197 if label_name == '8' 
-                                                else 207 if label_name == '6'
-                                                else 187 if label_name == '7'
-                                                else 189 if label_name == '5'
-                                                else 190 if label_name == '1'
-                                                else 183 if label_name == '2'
-                                                else 181 if label_name == '3'
-                                                else 199 if label_name == '0'
-                                                else 195 if label_name == '4'
-                                                else 198, replace=False)
+                                                  200 if label_name == '8' 
+                                                else 200 if label_name == '6'
+                                                else 200 if label_name == '7'
+                                                else 200 if label_name == '5'
+                                                else 200 if label_name == '1'
+                                                else 200 if label_name == '2'
+                                                else 200 if label_name == '3'
+                                                else 200 if label_name == '0'
+                                                else 200 if label_name == '4'
+                                                else 200, replace=False)
             
             new_train_images.append(train_images[selected_idxs])
             new_train_labels.append(train_labels[selected_idxs])

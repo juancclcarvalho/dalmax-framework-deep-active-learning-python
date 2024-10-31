@@ -107,9 +107,24 @@ def task_dalmax(args):
 
     for i in range(iterations):
         try: 
+            print("\n\n---------------------------------------------")
             print(f"Iteration {i+1}/{iterations}")
-            print(f"Actual Train Size: {len(train_images)} Actual Pool Size: {len(pool_images)}")
+            print(f"Actual Train Size: {len(train_images)}")
+            print(f"Actual Pool Size: {len(pool_images)}")
+
             
+            # Methods that do not use the model
+            methods_not_use_model = ['random_sampling', 'diversity_sampling','query_by_committee']
+            
+            # If type_active_learning is in methods_not_use_model, do not train the model
+            if type_active_learning not in methods_not_use_model:
+                # Train model
+                print("\nTraining main model")
+                print(f"-----------------------------")
+                model.fit(train_images, train_labels, epochs=10, verbose=1)
+                print(f"-----------------------------")
+            
+            print(f"\nSelecting {batch_size} images from pool with {type_active_learning} method")
             selected_al_idx = None
             # Random Sampling
             if type_active_learning == 'random_sampling':
@@ -134,11 +149,9 @@ def task_dalmax(args):
                 selected_al_idx = DalMaxSampler.adversarial_sampling(model, pool_images, batch_size)
             # Reinforcement Learning for Active Learning
             elif type_active_learning == 'reinforcement_learning_sampling':
-
                 # Assumindo um agente RL inicializado
                 selected_al_idx = DalMaxSampler.reinforcement_learning_sampling(agent, model, pool_images, batch_size)
                 print(f"Selected by RL: {selected_al_idx}")
-                
             # Expected Model Change
             elif type_active_learning == 'expected_model_change':
                 selected_al_idx = DalMaxSampler.expected_model_change(model, pool_images, batch_size)
@@ -147,23 +160,18 @@ def task_dalmax(args):
                 selected_al_idx = DalMaxSampler.bayesian_sampling(model, pool_images, batch_size)
             else:
                 raise ValueError('Active Learning type must be uncertainty_sampling, query_by_committee or diversity_sampling')
-
+                            
             # Escolher uma técnica por iteração (ou combinar)
             selected_idx = selected_al_idx  # Exemplo usando Uncertainty Sampling
+            print(f"Selected new images: {len(selected_idx)} from pool")
+            print(f"Selected index new images: {selected_idx}")
 
-            # Atualizar conjuntos de treino e pool
-            train_images = np.concatenate([train_images, pool_images[selected_idx]])
-            train_labels = np.concatenate([train_labels, pool_labels[selected_idx]])
-            pool_images = np.delete(pool_images, selected_idx, axis=0)
-            pool_labels = np.delete(pool_labels, selected_idx, axis=0)
-
-            
-            print('Selected_idx: ', selected_idx)
-            print(f"New Train Size: {len(train_images)} New Pool Size: {len(pool_images)}")
-            
-            # Salve todas as imagens selecionadas em suas devidas pastas em dir_results/selected_images
+            # Save all selected images in their respective folders in dir_results/selected_images
             if not os.path.exists(f'{dir_results}/selected_images'):
+                print(f"Creating selected_images folder on {dir_results}/selected_images")
                 os.makedirs(f'{dir_results}/selected_images')
+            
+            print(f"Saving selected images in {dir_results}/selected_images")
             for idx in selected_idx:
                 img = pool_images[idx]
                 label = pool_labels[idx].argmax()
@@ -175,12 +183,24 @@ def task_dalmax(args):
                     os.makedirs(img_dir)
                 plt.imsave(f'{img_dir}/{img_name}', img)
 
-            # Treinar o modelo
-            model.fit(train_images, train_labels, epochs=5, verbose=1)
+            print(f"Images saved in {dir_results}/selected_images\n\n")
+
+            print("\nUpdating Train and Pool sets")
+            # Update train and pool sets
+            train_images = np.concatenate([train_images, pool_images[selected_idx]])
+            train_labels = np.concatenate([train_labels, pool_labels[selected_idx]])
+            pool_images = np.delete(pool_images, selected_idx, axis=0)
+            pool_labels = np.delete(pool_labels, selected_idx, axis=0)
+            
+            print(f"New Train Size: {len(train_images)}")
+            print(f"New Pool Size: {len(pool_images)}")
+            print(f"Concluded iteration {i+1}/{iterations}. Next iteration...")
+            print("---------------------------------------------")
+            
         except Exception as e:
             print(f'Stopping iteration {i+1}/{iterations}: {e}')
+            e.print_stack()
             break
-
 
     end_time = time.time()
     text_time = f"Total time: {end_time - start_time:.2f} seconds"
