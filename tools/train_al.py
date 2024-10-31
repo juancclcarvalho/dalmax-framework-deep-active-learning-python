@@ -17,6 +17,8 @@ from tensorflow.keras.utils import to_categorical # type: ignore
 
 # Add path to root
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Definir a semente para o gerador de números aleatórios do NumPy
+np.random.seed(42)
 
 # Local imports
 from utils.utilities import load_images, plot_metrics, plot_confusion_matrix

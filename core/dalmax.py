@@ -5,6 +5,8 @@ import tensorflow as tf
 from sklearn.cluster import KMeans
 from scipy.spatial import distance
 import numpy as np
+# Definir a semente para o gerador de números aleatórios do NumPy
+np.random.seed(42)
 
 # Técnicas de Active Learning
 class DalMaxSampler:
