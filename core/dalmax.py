@@ -8,6 +8,10 @@ import numpy as np
 # Definir a semente para o gerador de números aleatórios do NumPy
 # np.random.seed(43)
 
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans 
+from sklearn.pipeline import Pipeline
+
 # Técnicas de Active Learning
 class DalMaxSampler:
     @staticmethod
@@ -17,35 +21,37 @@ class DalMaxSampler:
     
     @staticmethod
     def diversity_sampling(pool, batch_size):
-            start_time = time.time()
-            print("Init diversity_sampling")
-            # Imprimir o shape de pool
-            print(f'Pool shape: {pool.shape}')
-            # Achata cada amostra no pool para garantir uma entrada bidimensional para o K-means
-            flattened_pool = pool.reshape(len(pool), -1)
-            print(f'Flattened pool shape: {flattened_pool.shape}')
-            
-            # Realiza o clustering no pool de dados achatados com o número de clusters igual ao batch_size
-            kmeans = KMeans(n_clusters=batch_size, random_state=42)
-            kmeans.fit(flattened_pool)
-            
-            # Encontra os índices dos pontos mais próximos de cada centroide do cluster
-            centers = kmeans.cluster_centers_
-            indices = []
-            
-            for center in centers:
-                # Calcula a distância de cada ponto ao centroide atual
-                distances = np.linalg.norm(flattened_pool - center, axis=1)
-                # Seleciona o índice do ponto mais próximo do centroide
-                closest_index = np.argmin(distances)
-                indices.append(closest_index)
-            
-            end_time = time.time()
-            
-            text_time = f"Total time: {end_time - start_time:.2f} seconds"
-            print(text_time)
+        start_time = time.time()
+        print("Init diversity_sampling")
 
-            return indices
+        # Achata cada amostra no pool para garantir uma entrada bidimensional para o K-means
+        flattened_pool = pool.reshape(len(pool), -1)
+        print(f'Flattened pool shape: {flattened_pool.shape}')
+
+        # Define o número de clusters como o menor entre o batch_size e o número total de amostras
+        n_clusters = 10
+
+        # Ajusta o K-means no pool de dados achatados
+        kmeans = KMeans(n_clusters=n_clusters, max_iter=5, random_state=42, verbose=1)
+        kmeans.fit(flattened_pool)
+        print("K-means fitted")
+
+        # Encontra o índice da amostra mais próxima de cada centroide
+        centers = kmeans.cluster_centers_
+        selected_indices = []
+
+        for center in centers:
+            # Calcula a distância de cada ponto ao centroide atual
+            distances = np.linalg.norm(flattened_pool - center, axis=1)
+            # Seleciona o índice do ponto mais próximo do centroide
+            closest_index = np.argmin(distances)
+            selected_indices.append(closest_index)
+
+        end_time = time.time()
+        print(f"Total time: {end_time - start_time:.2f} seconds")
+
+        # Retorna os índices das amostras mais representativas
+        return selected_indices[:batch_size]
 
     @staticmethod
     def uncertainty_sampling(model, pool, batch_size):

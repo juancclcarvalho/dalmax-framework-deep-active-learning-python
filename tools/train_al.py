@@ -247,7 +247,6 @@ def task_dalmax(args):
             AUX += 1
         except Exception as e:
             print(f'Stopping iteration {i+1}/{iterations}: {e}')
-            e.print_stack()
             break
     
     # Save all selected images in their respective folders in dir_results/selected_images
