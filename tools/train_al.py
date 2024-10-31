@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import argparse
+import random
 
 # Data manipulation
 import numpy as np
@@ -18,7 +19,7 @@ from tensorflow.keras.utils import to_categorical # type: ignore
 # Add path to root
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Definir a semente para o gerador de números aleatórios do NumPy
-np.random.seed(42)
+# np.random.seed(43)
 
 # Local imports
 from utils.utilities import load_images, plot_metrics, plot_confusion_matrix
@@ -85,8 +86,22 @@ def task_dalmax(args):
 
     # Split data
     train_images, pool_images, train_labels, pool_labels = train_test_split(images, labels, test_size=test_size, random_state=42)
-    
-    print("Percentage of train images:")
+
+    # Remover todos os itens train_images e inserir em pool_images
+    pool_images = np.concatenate([pool_images, train_images])
+    pool_labels = np.concatenate([pool_labels, train_labels])
+    train_images = np.empty((0,) + pool_images.shape[1:], dtype=pool_images.dtype)
+    train_labels = np.empty((0,) + pool_labels.shape[1:], dtype=pool_labels.dtype)
+
+    # Selecione as primeiras 10 imagens de cada classe para o conjunto do pool e insira no conjunto de treinamento. De modo que o conjuto de treinamento tenha extamente 10 imagens de cada classe
+    for label_name, label_idx in label_map.items():
+        idx_label = np.where(pool_labels.argmax(axis=1) == label_idx)[0][:10]
+        train_images = np.concatenate([train_images, pool_images[idx_label]])
+        train_labels = np.concatenate([train_labels, pool_labels[idx_label]])
+        pool_images = np.delete(pool_images, idx_label, axis=0)
+        pool_labels = np.delete(pool_labels, idx_label, axis=0)
+
+    print("Percentage of train images:") # Do train_images. Deve imprimir 0% para todas as classes
     for label_name, label_idx in label_map.items():
         print(f"{label_name}: {len(np.where(train_labels.argmax(axis=1) == label_idx)[0])} ({np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%)")
     
@@ -112,13 +127,40 @@ def task_dalmax(args):
         # Inicializando o agente
         agent = DQNAgent(input_dim, output_dim)
 
-    for i in range(iterations):
+    #for i in range(iterations):
+    AUX = 0
+    while AUX < iterations:
+        i = AUX
+        print(f"Starting iteration {i+1}/{iterations}")
+        
         try: 
             print("\n\n---------------------------------------------")
             print(f"Iteration {i+1}/{iterations}")
             print(f"Actual Train Size: {len(train_images)}")
             print(f"Actual Pool Size: {len(pool_images)}")
+                
+            print("Percentage of train images:") # Do train_images. Deve imprimir 0% para todas as classes
+            for label_name, label_idx in label_map.items():
+                print(f"{label_name}: {len(np.where(train_labels.argmax(axis=1) == label_idx)[0])} ({np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%)")
+            
+            # Se cada classe não tiver extamente a quantidade de imagens de  batch_size +10 imagens aumentar o número de iterações
+            IS_BREAK = True
+            for label_name, label_idx in label_map.items():
+                if len(np.where(train_labels.argmax(axis=1) == label_idx)[0]) < batch_size + 10:
+                    iterations += 1
+                    print(f"Increasing iterations to {iterations} due to class {label_name} having less than {batch_size + 10} images")
+                    # A classe X tem atualmente Y imagens, mas precisa de pelo menos Z imagens
+                    print(f"The class {label_name} currently has {len(np.where(train_labels.argmax(axis=1) == label_idx)[0])} images, but needs at least {batch_size + 10} images")
+                    IS_BREAK = False
+                    break
 
+            # Se cada classe de train forem iguais a batch_size + 10 PARAR
+            if all([len(np.where(train_labels.argmax(axis=1) == label_idx)[0]) == batch_size + 10 for label_name, label_idx in label_map.items()]):
+                print(f"Each class has exactly {batch_size + 10} images. Stopping iterations")
+                break
+
+            if IS_BREAK:
+                break
             
             # Methods that do not use the model
             methods_not_use_model = ['random_sampling', 'diversity_sampling','query_by_committee']
@@ -174,31 +216,24 @@ def task_dalmax(args):
             print(f"Selected new images: {len(selected_idx)} from pool")
             print(f"Selected index new images: {selected_idx}")
 
-            # Save all selected images in their respective folders in dir_results/selected_images
-            if not os.path.exists(f'{dir_results}/selected_images'):
-                print(f"Creating selected_images folder on {dir_results}/selected_images")
-                os.makedirs(f'{dir_results}/selected_images')
-            
-            print(f"Saving selected images in {dir_results}/selected_images")
-            for idx in selected_idx:
-                img = pool_images[idx]
-                label = pool_labels[idx].argmax()
-                img_path = paths_images[idx]
-                img_name = img_path.split('/')[-1]
-                img_class = list(label_map.keys())[label]
-                img_dir = f'{dir_results}/selected_images/{img_class}'
-                if not os.path.exists(img_dir):
-                    os.makedirs(img_dir)
-                plt.imsave(f'{img_dir}/{img_name}', img)
-
-            print(f"Images saved in {dir_results}/selected_images\n\n")
-
             print("\nUpdating Train and Pool sets")
             # Update train and pool sets
             train_images = np.concatenate([train_images, pool_images[selected_idx]])
             train_labels = np.concatenate([train_labels, pool_labels[selected_idx]])
             pool_images = np.delete(pool_images, selected_idx, axis=0)
             pool_labels = np.delete(pool_labels, selected_idx, axis=0)
+
+            # Ensure the training set has exactly batch_size + 10 images per class
+            for label_name, label_idx in label_map.items():
+                idx_label = np.where(train_labels.argmax(axis=1) == label_idx)[0]
+                print(f"Class {label_name} has {len(idx_label)} images")
+                if len(idx_label) > batch_size + 10:
+                    print(f"Removing {len(idx_label) - (batch_size + 10)} images from class {label_name}")
+                    excess_idx = idx_label[batch_size + 10:]
+                    pool_images = np.concatenate([pool_images, train_images[excess_idx]])
+                    pool_labels = np.concatenate([pool_labels, train_labels[excess_idx]])
+                    train_images = np.delete(train_images, excess_idx, axis=0)
+                    train_labels = np.delete(train_labels, excess_idx, axis=0)
             
             print(f"New Train Size: {len(train_images)}")
             print(f"New Pool Size: {len(pool_images)}")
@@ -209,11 +244,30 @@ def task_dalmax(args):
             if type_active_learning == 'random_sampling':
                 break
             
+            AUX += 1
         except Exception as e:
             print(f'Stopping iteration {i+1}/{iterations}: {e}')
             e.print_stack()
             break
+    
+    # Save all selected images in their respective folders in dir_results/selected_images
+    if not os.path.exists(f'{dir_results}/selected_images'):
+        print(f"Creating selected_images folder on {dir_results}/selected_images")
+        os.makedirs(f'{dir_results}/selected_images')
+    
+    print(f"Saving selected images in {dir_results}/selected_images")
+    for idx in range(len(train_images)):
+        img = train_images[idx]
+        label = train_labels[idx].argmax()
+        img_class = list(label_map.keys())[label]
+        img_dir = f'{dir_results}/selected_images/{img_class}'
+        if not os.path.exists(img_dir):
+            os.makedirs(img_dir)
+        img_name = f'{idx}.png'
+        plt.imsave(f'{img_dir}/{img_name}', img)
 
+    print(f"Images saved in {dir_results}/selected_images\n\n")
+    
     end_time = time.time()
     text_time = f"Total time: {end_time - start_time:.2f} seconds"
     print(text_time)
@@ -317,7 +371,8 @@ def task_train(args):
         f.write(f"{text_time}\n")
         f.write(f"Results saved in {dir_results}\n")
         f.write(f"Active Learning Task: {args.type}\n")
-    
+    print(f"Results saved in {dir_results}")
+    print(f"Active Learning Task: {args.type}")
     print("Task Train Done!")
     print("---------------------------------------------")
 

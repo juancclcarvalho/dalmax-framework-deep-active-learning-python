@@ -71,6 +71,8 @@ def create_model(input_shape, num_classes, mult_gpu=False, use_gpu=0):
     print(f"Using GPU: {os.environ.get('CUDA_VISIBLE_DEVICES')}\n\n\n\n\n\n")
 
     base_model = VGG16(weights='imagenet', include_top=False, input_shape=input_shape)
+
+    # base_model = EfficientNetB7(weights='imagenet', include_top=False, input_shape=input_shape)
     
     model = Sequential([
             base_model,

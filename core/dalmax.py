@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 from scipy.spatial import distance
 import numpy as np
 # Definir a semente para o gerador de números aleatórios do NumPy
-np.random.seed(42)
+# np.random.seed(43)
 
 # Técnicas de Active Learning
 class DalMaxSampler:
