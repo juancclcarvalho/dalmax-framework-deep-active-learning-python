@@ -238,7 +238,7 @@ def task_train(args):
 
     print("Percentage of train images:")
     for label_name, label_idx in label_map.items():
-        print(f"{label_name}: {np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%")
+        print(f"{label_name}: {len(np.where(train_labels.argmax(axis=1) == label_idx)[0])} ({np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%)")
     
     # MODEL
     # Create model
