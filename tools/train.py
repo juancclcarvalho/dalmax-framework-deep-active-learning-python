@@ -74,28 +74,28 @@ def main(args):
             idxs = np.where(train_labels.argmax(axis=1) == label_idx)[0]
             """
             BASE: 
-            8: 42 (11.93%)
-            6: 22 (6.25%)
-            7: 34 (9.66%)
-            5: 45 (12.78%)
-            1: 35 (9.94%)
-            2: 33 (9.38%)
-            3: 41 (11.65%)
-            0: 43 (12.22%)
-            4: 32 (9.09%)
-            9: 25 (7.10%)
+            8: 111 (11.00%)
+            6: 91 (9.02%)
+            7: 95 (9.42%)
+            5: 99 (9.81%)
+            1: 94 (9.32%)
+            2: 104 (10.31%)
+            3: 100 (9.91%)
+            0: 106 (10.51%)
+            4: 98 (9.71%)
+            9: 111 (11.00%)
             """
             selected_idxs = np.random.choice(idxs, 
-                                                  42 if label_name == '8' 
-                                                else 22 if label_name == '6' 
-                                                else 34 if label_name == '7' 
-                                                else 45 if label_name == '5'
-                                                else 35 if label_name == '1'
-                                                else 33 if label_name == '2'
-                                                else 41 if label_name == '3'
-                                                else 43 if label_name == '0'
-                                                else 32 if label_name == '4'
-                                                else 25, replace=False)
+                                                  111 if label_name == '8' 
+                                                else 91 if label_name == '6'
+                                                else 95 if label_name == '7'
+                                                else 99 if label_name == '5'
+                                                else 94 if label_name == '1'
+                                                else 104 if label_name == '2'
+                                                else 100 if label_name == '3'
+                                                else 106 if label_name == '0'
+                                                else 98 if label_name == '4'
+                                                else 111, replace=False)
             
             new_train_images.append(train_images[selected_idxs])
             new_train_labels.append(train_labels[selected_idxs])

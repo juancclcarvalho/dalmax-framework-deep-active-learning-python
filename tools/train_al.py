@@ -1,4 +1,4 @@
-# Example usage: python tools/train_al.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9 --mult_gpu True
+# Example usage: python tools/train_al.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9 --epochs 100 --mult_gpu True
 
 # System imports
 import os
@@ -20,7 +20,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Local imports
 from utils.utilities import load_images, plot_metrics, plot_confusion_matrix
-from core.model_dl import create_model, create_parallel_model
+from core.model_dl import create_model, create_parallel_model, DQNAgent
 from core.dalmax import DalMaxSampler
 
 def valid_args(args):
@@ -40,50 +40,48 @@ def valid_args(args):
     if args.test_size <= 0 or args.test_size >= 1:
         raise ValueError('Test size must be between 0 and 1')
     
+    if args.epochs <= 0:
+        raise ValueError('Epochs must be greater than 0')
     # Verifica se o tipo de active learning é válido
-    if args.type not in ['uncertainty_sampling', 'query_by_committee', 'diversity_sampling', 'core_set_selection', 'adversarial_sampling', 'reinforcement_learning_sampling', 'expected_model_change', 'bayesian_sampling']:
+    if args.type not in ['random_sampling','uncertainty_sampling', 'query_by_committee', 'diversity_sampling', 'core_set_selection', 'adversarial_sampling', 'reinforcement_learning_sampling', 'expected_model_change', 'bayesian_sampling']:
         raise ValueError('Active Learning type must be: uncertainty_sampling, query_by_committee, diversity_sampling, core_set_selection, adversarial_sampling, reinforcement_learning_sampling, expected_model_change or bayesian_sampling')
     
-    
-def main(args):
+def task_dalmax(args):
+
     # SETTINGS 
     # Vars from args
     dir_results = args.dir_results + f'/active_learning/{args.type}/'
     dir_train = args.dir_train
-    dir_test = args.dir_test
 
     batch_size = args.batch_size
     iterations = args.iterations
     test_size = args.test_size
     type_active_learning = args.type
+
     mult_gpu = args.mult_gpu
 
     # Setup dir results
     if not os.path.exists(dir_results):
         os.makedirs(dir_results)
-    
-    print(f"Initializating DalMax")
-    print(f"Deep Learning Type Model: {args.type}")
-    print(f"Parameters:")
-    print(f"batch_size: {batch_size}")
-    print(f"iterations: {iterations}")
-    print(f"test_size: {test_size}")
-    print(f"mult_gpu: {mult_gpu}")
+
+    print("---------------------------------------------")
+    print("Initializating DalMax")
 
     # DATASET
     # Load dataset and preprocess
     images, labels, label_map, paths_images = load_images(dir_train)
-    print(f"Classes label_map train: {label_map}")
-    # Norm
     images = images / 255.0
     labels = to_categorical(labels, num_classes=len(label_map))
+
+    print(f"Classes label_map train: {label_map}")
+
 
     # Split data
     train_images, pool_images, train_labels, pool_labels = train_test_split(images, labels, test_size=test_size, random_state=42)
     
-    print(f"Percentage of train images:")
+    print("Percentage of train images:")
     for label_name, label_idx in label_map.items():
-        print(f"{label_name}: {np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%")
+        print(f"{label_name}: {len(np.where(train_labels.argmax(axis=1) == label_idx)[0])} ({np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%)")
     
     # MODEL
     # Create model
@@ -94,7 +92,18 @@ def main(args):
 
     # START TRAINING
     start_time = time.time()
-    final_weighted_history = None
+
+    # Reinforcement Learning for Active Learning
+    agent = None
+    if type_active_learning == 'reinforcement_learning_sampling':
+        # Parâmetros de entrada
+        # Buscar a dimensão correta das imagens
+        input_dim = train_images.shape[1:][0] * train_images.shape[1:][1] * train_images.shape[1:][2]
+        print(f"Input Dim: {input_dim}")
+        output_dim = 2   # número de ações possíveis (0 ou 1)
+
+        # Inicializando o agente
+        agent = DQNAgent(input_dim, output_dim)
 
     for i in range(iterations):
         try: 
@@ -102,9 +111,11 @@ def main(args):
             print(f"Actual Train Size: {len(train_images)} Actual Pool Size: {len(pool_images)}")
             
             selected_al_idx = None
-
+            # Random Sampling
+            if type_active_learning == 'random_sampling':
+                selected_al_idx = DalMaxSampler.random_sampling(pool_images, batch_size)
             # Diversity Sampling
-            if type_active_learning == 'diversity_sampling':
+            elif type_active_learning == 'diversity_sampling':
                 selected_al_idx = DalMaxSampler.diversity_sampling(pool_images, batch_size)
             # Uncertainty Sampling
             elif type_active_learning == 'uncertainty_sampling':
@@ -123,10 +134,11 @@ def main(args):
                 selected_al_idx = DalMaxSampler.adversarial_sampling(model, pool_images, batch_size)
             # Reinforcement Learning for Active Learning
             elif type_active_learning == 'reinforcement_learning_sampling':
-                # TODO: Implementar no futuro próximo
+
                 # Assumindo um agente RL inicializado
-                # selected_al_idx = DalMaxSampler.reinforcement_learning_sampling(agent, model, pool_images, batch_size)
-                pass
+                selected_al_idx = DalMaxSampler.reinforcement_learning_sampling(agent, model, pool_images, batch_size)
+                print(f"Selected by RL: {selected_al_idx}")
+                
             # Expected Model Change
             elif type_active_learning == 'expected_model_change':
                 selected_al_idx = DalMaxSampler.expected_model_change(model, pool_images, batch_size)
@@ -164,26 +176,84 @@ def main(args):
                 plt.imsave(f'{img_dir}/{img_name}', img)
 
             # Treinar o modelo
-            weighted_history = model.fit(train_images, train_labels, epochs=5, verbose=1)
-
-            if final_weighted_history is None:
-                final_weighted_history = weighted_history
-            else:
-                for key in final_weighted_history.history.keys():
-                    final_weighted_history.history[key] += weighted_history.history[key]
+            model.fit(train_images, train_labels, epochs=5, verbose=1)
         except Exception as e:
-            print(f"Parando o processo pois os indices selecionados estão fora do range: {e}")
+            print(f'Stopping iteration {i+1}/{iterations}: {e}')
             break
 
+
     end_time = time.time()
-    print(f"Total time: {end_time - start_time:.2f} seconds")
+    text_time = f"Total time: {end_time - start_time:.2f} seconds"
+    print(text_time)
     
     # Save time on infos file
-    with open(f'{dir_results}/infos.txt', 'w') as f:
-        f.write(f"Total time: {end_time - start_time:.2f} seconds\n")
+    with open(f'{dir_results}/dalmax_time_process.txt', 'w') as f:
+        f.write(f"{text_time}\n")
+        f.write(f"Results saved in {dir_results}\n")
+        f.write(f"Active Learning Task: {args.type}\n")
     
+    print("Task DalMax Done!")
+    print("---------------------------------------------")
+
+    del model
+    del train_images
+    del pool_images
+    del train_labels
+    del pool_labels
+
+def task_train(args):
+    # SETTINGS 
+    # Vars from args
+    dir_results = args.dir_results + f'/active_learning/{args.type}/'
+    dir_test = args.dir_test
+
+    mult_gpu = args.mult_gpu
+    num_epochs = args.epochs
+
+    # Setup dir results
+    if not os.path.exists(dir_results):
+        os.makedirs(dir_results)
+    if not os.path.exists(f'{dir_results}/selected_images'):
+        raise ValueError('Selected not found')
+    
+    # Verifica se a pasta esta vazia
+    if len(os.listdir(f'{dir_results}/selected_images/')) == 0:
+        raise ValueError('Images not found in selected_images folder')
+    
+    print("---------------------------------------------")
+    print("Initializating Task Train")
+
+    # NEW TRAING TASK
+    # DATASET
+    # Load dataset and preprocess
+    images, labels, label_map, paths_images = load_images(f'{dir_results}/selected_images/')
+    images = images / 255.0
+    labels = to_categorical(labels, num_classes=len(label_map))
+
+    print(f"Classes label_map train: {label_map}")
+
+    # Split data
+    train_images = images
+    train_labels = labels
+
+    print("Percentage of train images:")
+    for label_name, label_idx in label_map.items():
+        print(f"{label_name}: {np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%")
+    
+    # MODEL
+    # Create model
+    if mult_gpu:
+        model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+    else:
+        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+    
+    # Treinar o modelo
+    weighted_history = model.fit(train_images, train_labels, epochs=num_epochs, verbose=1)
+    final_weighted_history = weighted_history
+    start_time = time.time()
     # SAVE MODEL
-    model.save(f'{dir_results}/{args.type}_al_model.h5')
+    model.save(f'{dir_results}/final_{args.type}_al_model.h5')
+    end_time = time.time()
 
     # Plot training metrics
     plot_metrics(final_weighted_history, dir_results, metrics=['loss', 'accuracy'], is_show=False)
@@ -205,10 +275,37 @@ def main(args):
 
     # Plot confusion matrix
     plot_confusion_matrix(test_labels=test_labels, predictions=predictions, label_map=label_map, dir_results=dir_results, is_show=False)
-    print(f"Results saved in {dir_results}")
-    print(f"Active Learning Type: {args.type}")
-    print("Done!")
 
+    text_time = f"Total time: {end_time - start_time:.2f} seconds"
+    print(text_time)
+    
+    # Save time on infos file
+    with open(f'{dir_results}/dalmax_time_process.txt', 'w') as f:
+        f.write(f"{text_time}\n")
+        f.write(f"Results saved in {dir_results}\n")
+        f.write(f"Active Learning Task: {args.type}\n")
+    
+    print("Task Train Done!")
+    print("---------------------------------------------")
+
+def main(args):
+    print("Initializating Process")
+    # Folders
+    print(f"Train Directory: {args.dir_train}")
+    print(f"Test Directory: {args.dir_test}")
+    print(f"Results Directory: {args.dir_results}")
+    # Active Learning
+    print(f"Task Model: {args.type}")
+    print("Parameters:")
+    print(f"batch_size: {args.batch_size}")
+    print(f"iterations: {args.iterations}")
+    print(f"test_size: {args.test_size}")
+    print(f"mult_gpu: {args.mult_gpu}")
+    print(f"epochs to train: {args.epochs}")
+
+    task_dalmax(args)
+    task_train(args)
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DalMax - Framework for Deep Active Learning with TensorFlow 2.0')
     
@@ -225,6 +322,8 @@ if __name__ == '__main__':
     parser.add_argument('--iterations', type=int, default=5, help='Number of iterations')
     parser.add_argument('--test_size', type=float, default=0.9, help='Test size')
     parser.add_argument('--mult_gpu', type=bool, default=False, help='Use multiple GPUs')
+    parser.add_argument('--epochs', type=int, default=10, help='Epochs size')
+
     args = parser.parse_args()
 
     valid_args(args)
