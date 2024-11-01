@@ -127,6 +127,7 @@ To train the models, run the following command:
 - `test_size`: Proportion of the test dataset.
 - `mult_gpu`: Use multiple GPUs. Optional. If `True`, the model is trained with multiple GPUs. If not informed, the model is trained with a single GPU.
 - `use_gpu`: Use GPU. Optional. If `0`, the model is trained first with the CPU. If `1`, the model is trained with the second GPU. If not informed, the model is trained with the first GPU.
+- `only_train`: Train the model only. Optional. If `True`, the model is trained only. If not informed, the process executes the active learning strategy and trains the model.
 
 #### Results
 The results are saved in the `results` folder. The following files are generated:

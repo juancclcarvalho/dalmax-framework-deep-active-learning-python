@@ -5,7 +5,6 @@ import os
 import sys
 import time
 import argparse
-import random
 
 # Data manipulation
 import numpy as np
@@ -104,13 +103,16 @@ def task_dalmax(args):
     print("Percentage of train images:") # Do train_images. Deve imprimir 0% para todas as classes
     for label_name, label_idx in label_map.items():
         print(f"{label_name}: {len(np.where(train_labels.argmax(axis=1) == label_idx)[0])} ({np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%)")
-    
-    # MODEL
-    # Create model
-    if mult_gpu:
-        model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
-    else:
-        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map), mult_gpu=mult_gpu, use_gpu=use_gpu)
+    # Methods that do not use the model
+    methods_not_use_model = ['random_sampling', 'diversity_sampling','query_by_committee']
+    model = None
+    if type_active_learning not in methods_not_use_model:
+        # MODEL
+        # Create model
+        if mult_gpu:
+            model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+        else:
+            model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map), mult_gpu=mult_gpu, use_gpu=use_gpu)
 
     # START TRAINING
     start_time = time.time()
@@ -162,9 +164,6 @@ def task_dalmax(args):
             if IS_BREAK:
                 break
             
-            # Methods that do not use the model
-            methods_not_use_model = ['random_sampling', 'diversity_sampling','query_by_committee']
-            
             # If type_active_learning is in methods_not_use_model, do not train the model
             if type_active_learning not in methods_not_use_model:
                 # Train model
@@ -181,7 +180,7 @@ def task_dalmax(args):
                 selected_al_idx = DalMaxSampler.random_sampling(pool_images, batch_size*iterations)
             # Diversity Sampling
             elif type_active_learning == 'diversity_sampling':
-                selected_al_idx = DalMaxSampler.diversity_sampling(pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.diversity_sampling_som(pool_images, batch_size)
             # Uncertainty Sampling
             elif type_active_learning == 'uncertainty_sampling':
                 selected_al_idx = DalMaxSampler.uncertainty_sampling(model, pool_images, batch_size)
@@ -247,6 +246,7 @@ def task_dalmax(args):
             AUX += 1
         except Exception as e:
             print(f'Stopping iteration {i+1}/{iterations}: {e}')
+            exit(1)
             break
     
     # Save all selected images in their respective folders in dir_results/selected_images
@@ -392,8 +392,13 @@ def main(args):
         print(f"use_gpu: {args.use_gpu}")
     print(f"epochs to train: {args.epochs}")
 
-    task_dalmax(args)
-    task_train(args)
+    if args.only_train:
+        print("Task Only Train")
+        task_train(args)
+    else:
+        print("Task DalMax + Train")
+        task_dalmax(args)
+        task_train(args)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DalMax - Framework for Deep Active Learning with TensorFlow 2.0')
@@ -414,6 +419,8 @@ if __name__ == '__main__':
     parser.add_argument('--use_gpu', type=int, default=0, help='Use GPU: 0 or 1')
 
     parser.add_argument('--epochs', type=int, default=10, help='Epochs size')
+    # Only_train
+    parser.add_argument('--only_train', type=bool, default=False, help='Only train the model')
 
     args = parser.parse_args()
 
