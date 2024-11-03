@@ -180,7 +180,7 @@ def task_dalmax(args):
                 selected_al_idx = DalMaxSampler.random_sampling(pool_images, batch_size*iterations)
             # Diversity Sampling
             elif type_active_learning == 'diversity_sampling':
-                selected_al_idx = DalMaxSampler.diversity_sampling_som(pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.diversity_sampling(pool_images, batch_size)
             # Uncertainty Sampling
             elif type_active_learning == 'uncertainty_sampling':
                 selected_al_idx = DalMaxSampler.uncertainty_sampling(model, pool_images, batch_size)

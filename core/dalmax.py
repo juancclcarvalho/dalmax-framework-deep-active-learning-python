@@ -1,17 +1,16 @@
 import time
-import numpy as np
-import os
 
 # TensorFlow and Sklearn
 import tensorflow as tf
-import tensorflow_addons as tfa  # Certifique-se de que o TensorFlow Addons está instalado
-
 from sklearn.cluster import KMeans
 from scipy.spatial import distance
 import numpy as np
 # Definir a semente para o gerador de números aleatórios do NumPy
 # np.random.seed(43)
 
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans 
+from sklearn.pipeline import Pipeline
 
 # Técnicas de Active Learning
 class DalMaxSampler:
@@ -19,70 +18,51 @@ class DalMaxSampler:
     def random_sampling(pool, batch_size):
         indices = np.random.choice(len(pool), batch_size, replace=False)
         return indices
-    @staticmethod
-    def diversity_sampling_som(pool, batch_size, som_dim=(10, 10), epochs=100):
-        start_time = time.time()
-        print("Init diversity_sampling with Self-Organizing Maps (SOM)")
-
-        flattened_pool = pool.reshape(len(pool), -1)
-        input_dim = flattened_pool.shape[1]
-        n_clusters = som_dim[0] * som_dim[1]
-
-        # Inicializar pesos do SOM
-        som_weights = tf.Variable(tf.random.normal([n_clusters, input_dim]), trainable=True)
-        
-        # Treinar o SOM
-        for epoch in range(epochs):
-            for data in flattened_pool:
-                # Calcular distâncias e encontrar o melhor "matching unit" (BMU)
-                data = tf.expand_dims(data, 0)
-                distances = tf.reduce_sum((data - som_weights) ** 2, axis=1)
-                bmu_index = tf.argmin(distances)
-                
-                # Atualizar pesos do BMU
-                learning_rate = 0.5 * (1 - (epoch / epochs))
-                som_weights[bmu_index].assign(som_weights[bmu_index] + learning_rate * (data - som_weights[bmu_index]))
-
-        # Selecionar os índices das amostras mais próximas de cada cluster (BMU)
-        selected_indices = []
-        for weight in som_weights:
-            distances = np.linalg.norm(flattened_pool - weight.numpy(), axis=1)
-            closest_index = np.argmin(distances)
-            selected_indices.append(closest_index)
-
-        end_time = time.time()
-        print(f"Total time with SOM: {end_time - start_time:.2f} seconds")
-        return selected_indices[:batch_size]
     
     @staticmethod
-    def diversity_sampling_mini_batch_kmeans(pool, batch_size, mini_batch_size=100):
+    def diversity_sampling(pool, batch_size):
         start_time = time.time()
-        print("Init diversity_sampling with Mini-Batch K-Means")
+        print("Init diversity_sampling")
 
+        # Garantir que o pool é bidimensional para o K-means
         flattened_pool = pool.reshape(len(pool), -1)
-        n_clusters = min(batch_size // 5, len(pool))
+        print(f'Flattened pool shape: {flattened_pool.shape}')
 
-        # Definir o modelo Mini-Batch K-Means
-        kmeans = tf.keras.layers.experimental.preprocessing.Discretization(num_bins=n_clusters)
+        # Número de componentes para PCA e número de clusters para KMeans
+        n_components = min(10, flattened_pool.shape[1])
+        n_clusters = min(batch_size // 5, len(flattened_pool))  # Ajuste para um número razoável de clusters
         
-        # Treinar o modelo em mini-batches
-        for start in range(0, len(flattened_pool), mini_batch_size):
-            end = start + mini_batch_size
-            mini_batch = flattened_pool[start:end]
-            kmeans.adapt(mini_batch)
+        # Pipeline com PCA seguido de K-means
+        pca = PCA(n_components=n_components)
+        kmeans = KMeans(n_clusters=n_clusters, max_iter=200, random_state=42, verbose=1)
+        predictor = Pipeline([('pca', pca), ('kmeans', kmeans)])
 
-        # Obter centros dos clusters e selecionar as amostras mais próximas
-        centers = kmeans.get_weights()[0]
-        selected_indices = []
+        # Ajuste no pool de dados achatados
+        print("Fitting PCA and K-means")
+        predictor.fit(flattened_pool)
+        print("PCA and K-means fitted")
+
+        # Transforme o pool com PCA para obter a representação reduzida
+        reduced_pool = predictor.named_steps['pca'].transform(flattened_pool)
+
+        # Obtenha os centros dos clusters a partir do espaço reduzido
+        centers = predictor.named_steps['kmeans'].cluster_centers_
+        
+        # Encontra o índice da amostra mais próxima de cada centroide
+        unique_indices = set()
 
         for center in centers:
-            distances = np.linalg.norm(flattened_pool - center, axis=1)
+            # Calcula a distância de cada ponto ao centroide atual
+            distances = np.linalg.norm(reduced_pool - center, axis=1)
             closest_index = np.argmin(distances)
-            selected_indices.append(closest_index)
+            unique_indices.add(closest_index)
 
+        selected_indices = list(unique_indices)[:batch_size]
+        
         end_time = time.time()
-        print(f"Total time with Mini-Batch K-Means: {end_time - start_time:.2f} seconds")
-        return selected_indices[:batch_size]
+        print(f"Total time: {end_time - start_time:.2f} seconds")
+
+        return selected_indices
 
     @staticmethod
     def uncertainty_sampling(model, pool, batch_size):
