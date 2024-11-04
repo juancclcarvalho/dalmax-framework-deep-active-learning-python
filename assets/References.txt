@@ -1,1 +1,2 @@
 https://viso.ai/deep-learning/active-learning/
+https://jacobgil.github.io/deeplearning/activelearning
