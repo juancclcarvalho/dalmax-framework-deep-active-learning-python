@@ -29,12 +29,12 @@ class DalMaxSampler:
         print(f'Flattened pool shape: {flattened_pool.shape}')
 
         # Número de componentes para PCA e número de clusters para KMeans
-        n_components = min(10, flattened_pool.shape[1])
-        n_clusters = min(batch_size // 5, len(flattened_pool))  # Ajuste para um número razoável de clusters
+        n_components = min(10, flattened_pool.shape[1]) # Ajuste para um número razoável de componentes. Esse número significa que o PCA irá reduzir a dimensionalidade para 10
+        n_clusters = min(batch_size // 5, len(flattened_pool))  # Ajuste para um número razoável de clusters. Esse número significa que o K-means irá agrupar em 1/5 do tamanho do batch_size
         
         # Pipeline com PCA seguido de K-means
         pca = PCA(n_components=n_components)
-        kmeans = KMeans(n_clusters=n_clusters, max_iter=200, random_state=42, verbose=1)
+        kmeans = KMeans(n_clusters=n_clusters, max_iter=200, random_state=42)
         predictor = Pipeline([('pca', pca), ('kmeans', kmeans)])
 
         # Ajuste no pool de dados achatados
@@ -60,7 +60,7 @@ class DalMaxSampler:
         selected_indices = list(unique_indices)[:batch_size]
         
         end_time = time.time()
-        print(f"Total time: {end_time - start_time:.2f} seconds")
+        print(f"Total time diversity_sampling: {end_time - start_time:.2f} seconds")
 
         return selected_indices
 
