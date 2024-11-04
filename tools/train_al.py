@@ -351,9 +351,10 @@ def task_train(args):
         model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map), mult_gpu=mult_gpu, use_gpu=use_gpu)
     
     # Treinar o modelo
+    start_time = time.time()
     weighted_history = model.fit(train_images, train_labels, epochs=num_epochs, verbose=1)
     final_weighted_history = weighted_history
-    start_time = time.time()
+    
     # SAVE MODEL
     model.save(f'{dir_results}/final_{args.type}_al_model.h5')
     end_time = time.time()
@@ -393,6 +394,7 @@ def task_train(args):
     print("---------------------------------------------")
 
 def main(args):
+    start_time = time.time()
     print("Initializating Process")
     # Folders
     print(f"Train Directory: {args.dir_train}")
@@ -416,6 +418,9 @@ def main(args):
         print("Task DalMax + Train")
         task_dalmax(args)
         task_train(args)
+
+    end_time = time.time()
+    print(f"ALL TIME TO ALL TASKS: {end_time - start_time:.2f} seconds")
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DalMax - Framework for Deep Active Learning with TensorFlow 2.0')
