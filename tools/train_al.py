@@ -162,7 +162,7 @@ def task_dalmax(args):
                     # Verifica se a classe ja foi removida do pool. Se sim, não remover novamente
                     if len(np.where(pool_labels.argmax(axis=1) == label_idx)[0]) == 0:
                         continue
-                    print(f"-------------------------------------------------")
+                    print("-------------------------------------------------")
                     print(f"Removing all images from class {label_name} from pool. Because train has exactly {batch_size + 10} images")
                     # Shape do pool antes
                     print(f"Pool shape before: {pool_images.shape}")
@@ -170,7 +170,7 @@ def task_dalmax(args):
                     pool_images = np.delete(pool_images, idx_label, axis=0)
                     pool_labels = np.delete(pool_labels, idx_label, axis=0)
                     print(f"Pool shape after: {pool_images.shape}")
-                    print(f"-------------------------------------------------")
+                    print("-------------------------------------------------")
 
 
             # Se cada classe de train forem iguais a batch_size + 10 PARAR
@@ -185,9 +185,9 @@ def task_dalmax(args):
             if type_active_learning not in methods_not_use_model:
                 # Train model
                 print("\nTraining main model")
-                print(f"-----------------------------")
+                print("-----------------------------")
                 model.fit(train_images, train_labels, epochs=10, verbose=1)
-                print(f"-----------------------------")
+                print("-----------------------------")
             
             print(f"\nSelecting {batch_size} images from pool with {type_active_learning} method")
             selected_al_idx = None

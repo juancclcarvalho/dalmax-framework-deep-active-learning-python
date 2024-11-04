@@ -2,15 +2,12 @@ import time
 
 # TensorFlow and Sklearn
 import tensorflow as tf
-from sklearn.cluster import KMeans
-from scipy.spatial import distance
-import numpy as np
-# Definir a semente para o gerador de números aleatórios do NumPy
-# np.random.seed(43)
-
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans 
 from sklearn.pipeline import Pipeline
+from scipy.spatial import distance
+import numpy as np
+# np.random.seed(43) # Definir a semente para o gerador de números aleatórios do NumPy
 
 # Técnicas de Active Learning
 class DalMaxSampler:
