@@ -97,11 +97,19 @@ class DalMaxSampler:
     # Adversarial Active Learning
     @staticmethod
     def adversarial_sampling(model, pool, batch_size):
+        def adversarial_transform(image):
+            adv_image = tf.image.random_brightness(image, max_delta=0.1)
+            adv_image = tf.image.random_flip_left_right(adv_image)
+            adv_image = tf.image.rot90(adv_image, k=np.random.randint(4))  # Random 90 degree rotations
+            return adv_image
+
         print("Init adversarial_sampling")
         start_time = time.time()
         adv_images = []
         print("Generating adversarial examples with random_flip_left_right")
-        adv_images = tf.image.random_flip_left_right(pool)  # Exemplo básico; personalize para ataques avançados
+        adv_images = adversarial_transform(pool)
+        # Print shape
+        print(f"Adv images shape: {adv_images.shape}")
         adv_images = adv_images.numpy()  # Convertendo de tensor para numpy array
         adv_predictions = model.predict(np.array(adv_images))
         uncertainties = 1 - np.max(adv_predictions, axis=1)
