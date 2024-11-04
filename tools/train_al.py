@@ -156,6 +156,23 @@ def task_dalmax(args):
                     IS_BREAK = False
                     break
 
+            # Verify if each class has exactly batch_size + 10 images. If yes, remove all images from pool
+            for label_name, label_idx in label_map.items():
+                if (len(np.where(train_labels.argmax(axis=1) == label_idx)[0]) == batch_size + 10):
+                    # Verifica se a classe ja foi removida do pool. Se sim, não remover novamente
+                    if len(np.where(pool_labels.argmax(axis=1) == label_idx)[0]) == 0:
+                        continue
+                    print(f"-------------------------------------------------")
+                    print(f"Removing all images from class {label_name} from pool. Because train has exactly {batch_size + 10} images")
+                    # Shape do pool antes
+                    print(f"Pool shape before: {pool_images.shape}")
+                    idx_label = np.where(pool_labels.argmax(axis=1) == label_idx)[0]
+                    pool_images = np.delete(pool_images, idx_label, axis=0)
+                    pool_labels = np.delete(pool_labels, idx_label, axis=0)
+                    print(f"Pool shape after: {pool_images.shape}")
+                    print(f"-------------------------------------------------")
+
+
             # Se cada classe de train forem iguais a batch_size + 10 PARAR
             if all([len(np.where(train_labels.argmax(axis=1) == label_idx)[0]) == batch_size + 10 for label_name, label_idx in label_map.items()]):
                 print(f"Each class has exactly {batch_size + 10} images. Stopping iterations")
