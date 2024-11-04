@@ -97,16 +97,77 @@ class DalMaxSampler:
     # Adversarial Active Learning
     @staticmethod
     def adversarial_sampling(model, pool, batch_size):
+        print("Init adversarial_sampling")
+        start_time = time.time()
         adv_images = []
-        for img in pool:
-            adv_img = tf.image.random_flip_left_right(img)  # Exemplo básico; personalize para ataques avançados
-            adv_images.append(adv_img)
+        print("Generating adversarial examples with random_flip_left_right")
+        adv_images = tf.image.random_flip_left_right(pool)  # Exemplo básico; personalize para ataques avançados
+        adv_images = adv_images.numpy()  # Convertendo de tensor para numpy array
         adv_predictions = model.predict(np.array(adv_images))
         uncertainties = 1 - np.max(adv_predictions, axis=1)
+        end_time = time.time()
+        print(f"Total time adversarial_sampling: {end_time - start_time:.2f} seconds")
         return np.argsort(-uncertainties)[:batch_size]
-        
-    import numpy as np
+    
+    @staticmethod
+    def adversarial_sampling_ultra(model, pool, batch_size):
+        print("Init adversarial_sampling_ultra")
+        adv_images = []
+        start_time = time.time()
 
+        # FGSM - Fast Gradient Sign Method
+        def fgsm_attack(image, epsilon=0.01):
+            with tf.GradientTape() as tape:
+                tape.watch(image)
+                prediction = model(image)
+                loss = tf.keras.losses.categorical_crossentropy(tf.one_hot([np.argmax(prediction)], prediction.shape[-1]), prediction)
+            gradient = tape.gradient(loss, image)
+            signed_grad = tf.sign(gradient)
+            adv_image = image + epsilon * signed_grad
+            return tf.clip_by_value(adv_image, 0, 1)
+
+        # PGD - Projected Gradient Descent
+        def pgd_attack(image, epsilon=0.01, alpha=0.005, num_iterations=10):
+            adv_image = tf.identity(image)
+            for _ in range(num_iterations):
+                with tf.GradientTape() as tape:
+                    tape.watch(adv_image)
+                    prediction = model(adv_image)
+                    loss = tf.keras.losses.categorical_crossentropy(tf.one_hot([np.argmax(prediction)], prediction.shape[-1]), prediction)
+                gradient = tape.gradient(loss, adv_image)
+                adv_image = adv_image + alpha * tf.sign(gradient)
+                adv_image = tf.clip_by_value(tf.clip_by_value(adv_image, image - epsilon, image + epsilon), 0, 1)
+            return adv_image
+
+        # Adversarial Transformations - Random brightness and rotation
+        def adversarial_transform(image):
+            adv_image = tf.image.random_brightness(image, max_delta=0.1)
+            adv_image = tf.image.random_flip_left_right(adv_image)
+            adv_image = tf.image.rot90(adv_image, k=np.random.randint(4))  # Random 90 degree rotations
+            return adv_image
+
+        # Generate adversarial examples for each image in the pool using vectorized operations
+        print("Generating adversarial examples with FGSM, PGD, and random transformations")
+        choices = np.random.choice(['fgsm', 'pgd', 'transform'], size=len(pool))
+        
+        def generate_adv_image(img, choice):
+            if choice == 'fgsm':
+                return tf.squeeze(fgsm_attack(tf.expand_dims(img, axis=0)))
+            elif choice == 'pgd':
+                return tf.squeeze(pgd_attack(tf.expand_dims(img, axis=0)))
+            else:
+                return adversarial_transform(img)
+        
+        print("Generating adversarial examples: ")
+        adv_images = np.array([generate_adv_image(img, choice) for img, choice in zip(pool, choices)])
+
+        # Compute model predictions and uncertainties for adversarial samples
+        adv_predictions = model.predict(np.array(adv_images))
+        uncertainties = 1 - np.max(adv_predictions, axis=1)
+        end_time = time.time()
+        print(f"Total time adversarial_sampling_ultra: {end_time - start_time:.2f} seconds")
+        return np.argsort(-uncertainties)[:batch_size]
+    
     @staticmethod
     def reinforcement_learning_sampling(agent, model, pool, batch_size):
         # Limite de imagens a processar

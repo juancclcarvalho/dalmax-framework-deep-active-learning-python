@@ -49,8 +49,8 @@ def valid_args(args):
         raise ValueError('Use GPU must be 0 or 1')
     
     # Verifica se o tipo de active learning é válido
-    if args.type not in ['random_sampling','uncertainty_sampling', 'query_by_committee', 'diversity_sampling', 'core_set_selection', 'adversarial_sampling', 'reinforcement_learning_sampling', 'expected_model_change', 'bayesian_sampling']:
-        raise ValueError('Active Learning type must be: uncertainty_sampling, query_by_committee, diversity_sampling, core_set_selection, adversarial_sampling, reinforcement_learning_sampling, expected_model_change or bayesian_sampling')
+    if args.type not in ['random_sampling','uncertainty_sampling', 'query_by_committee', 'diversity_sampling', 'core_set_selection', 'adversarial_sampling', 'adversarial_sampling_ultra', 'reinforcement_learning_sampling', 'expected_model_change', 'bayesian_sampling']:
+        raise ValueError('Active Learning type must be: uncertainty_sampling, query_by_committee, diversity_sampling, core_set_selection, adversarial_sampling, adversarial_sampling_ultra, reinforcement_learning_sampling, expected_model_change or bayesian_sampling')
     
 def task_dalmax(args):
 
@@ -213,6 +213,11 @@ def task_dalmax(args):
             # Adversarial Active Learning
             elif type_active_learning == 'adversarial_sampling':
                 selected_al_idx = DalMaxSampler.adversarial_sampling(model, pool_images, batch_size)
+            
+            # Adversarial Active Learning Ultra
+            elif type_active_learning == 'adversarial_sampling_ultra':
+                selected_al_idx = DalMaxSampler.adversarial_sampling_ultra(model, pool_images, batch_size)
+
             # Reinforcement Learning for Active Learning
             elif type_active_learning == 'reinforcement_learning_sampling':
                 # Assumindo um agente RL inicializado
