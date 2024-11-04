@@ -80,14 +80,21 @@ class DalMaxSampler:
     # Core-Set Selection (K-Center)
     @staticmethod
     def core_set_selection(model, pool, batch_size):
+        start_time = time.time()
+        print("Init core_set_selection")
         features = model.predict(pool)
         kmeans = KMeans(n_clusters=batch_size)
+        print("Fitting K-means")
         kmeans.fit(features)
         centers = kmeans.cluster_centers_
         indices = []
+        print("Finding closest samples to centers")
         for center in centers:
             idx = distance.cdist([center], features).argmin()
             indices.append(idx)
+
+        end_time = time.time()
+        print(f"Total time core_set_selection: {end_time - start_time:.2f} seconds")
         return indices
 
     # Adversarial Active Learning
