@@ -225,7 +225,7 @@ def task_dalmax(args):
                 print(f"Selected by RL: {selected_al_idx}")
             # Expected Model Change
             elif type_active_learning == 'expected_model_change':
-                selected_al_idx = DalMaxSampler.expected_model_change(model, pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.expected_model_change_entropy(model, pool_images, batch_size)
             # Bayesian Sampling
             elif type_active_learning == 'bayesian_sampling':
                 selected_al_idx = DalMaxSampler.bayesian_sampling(model, pool_images, batch_size)
@@ -369,8 +369,13 @@ def task_train(args):
 
     # EVALUATION
     # Avaliação final
+    print("Percentage of train images:")
+    for label_name, label_idx in label_map.items():
+        print(f"{label_name}: {len(np.where(train_labels.argmax(axis=1) == label_idx)[0])} ({np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%)")
+    
     test_images, test_labels, label_map, paths_images = load_images(dir_test)
     print(f"Classes label_map test: {label_map}")
+    print(f"Test images shape: {test_images.shape}")
     test_images = test_images / 255.0
     test_labels = to_categorical(test_labels, num_classes=len(label_map))
     predictions = model.predict(test_images).argmax(axis=1)

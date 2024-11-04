@@ -7,6 +7,7 @@ from sklearn.cluster import KMeans
 from sklearn.pipeline import Pipeline
 from scipy.spatial import distance
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
 # np.random.seed(43) # Definir a semente para o gerador de números aleatórios do NumPy
 
 # Técnicas de Active Learning
@@ -206,18 +207,58 @@ class DalMaxSampler:
     # Expected Model Change
     @staticmethod
     def expected_model_change(model, pool, batch_size):
-        expected_changes = []
-        for idx, img in enumerate(pool):
-            prediction = model.predict(np.expand_dims(img, axis=0))
-            expected_change = np.sum(np.abs(prediction - prediction.mean()))
-            expected_changes.append((expected_change, idx))
-        expected_changes.sort(reverse=True)
-        return [idx for _, idx in expected_changes[:batch_size]]
+        print("Init expected_model_change")
 
+        # Realiza uma única predição em batch para todas as imagens no pool
+        print("Predicting on pool")
+        predictions = model.predict(pool, batch_size=32)
+        
+        # Calcula a média das previsões ao longo da dimensão das classes
+        print("Calculating mean predictions")
+        mean_predictions = np.mean(predictions, axis=1, keepdims=True)
+        
+        # Calcula a mudança esperada como a soma das diferenças absolutas entre as predições e sua média
+        print("Calculating expected changes")
+        expected_changes = np.sum(np.abs(predictions - mean_predictions), axis=1)
+
+        # Ordena os índices com base na mudança esperada em ordem decrescente
+        print("Sorting indices")
+        top_indices = np.argsort(-expected_changes)[:batch_size]
+
+        return top_indices.tolist()
+    @staticmethod
+    def expected_model_change_entropy(model, pool, batch_size):
+        print("Init expected_model_change_entropy")
+        predictions = model.predict(pool, batch_size=32)
+        entropies = -np.sum(predictions * np.log(predictions + 1e-10), axis=1)  # Calcular entropia para cada imagem
+        top_indices = np.argsort(-entropies)[:batch_size]  # Seleciona as imagens com maior entropia
+        return top_indices
+    @staticmethod
+    def expected_model_change_centroid_distance(model, pool, batch_size):
+        predictions = model.predict(pool, batch_size=32)
+        centroid = np.mean(predictions, axis=0)  # Centroide das predições
+        distances = np.linalg.norm(predictions - centroid, axis=1)  # Distância ao centroide
+        top_indices = np.argsort(-distances)[:batch_size]
+        return top_indices
+ 
     # Bayesian Active Learning
     @staticmethod
-    def bayesian_sampling(model, pool, batch_size):
-        predictions = [model.predict(pool, training=True) for _ in range(10)]
+    def bayesian_sampling_ababa(model, pool, batch_size):
+        predictions = [model.predict(pool) for _ in range(10)]
         predictions = np.array(predictions)
         predictive_variance = np.var(predictions, axis=0).sum(axis=1)
         return np.argsort(-predictive_variance)[:batch_size]
+    
+    @staticmethod
+    def bayesian_sampling(model, pool, batch_size, n_samples=5):
+        print("Init bayesian_sampling")
+        # Configurar dropout durante a predição (ativa Monte Carlo Dropout)
+        predictions = [model.predict(pool) for _ in range(n_samples)]
+        predictions = np.array(predictions)  # (n_samples, num_samples, num_classes)
+
+        # Variância preditiva por classe e média da variância para cada amostra
+        predictive_variance = np.mean(np.var(predictions, axis=0), axis=1)
+        
+        # Obter índices com maior incerteza
+        top_indices = np.argsort(-predictive_variance)[:batch_size]
+        return top_indices
