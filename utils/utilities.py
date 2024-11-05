@@ -13,7 +13,7 @@ def count_files(dir_path):
         for dir in dirs:
             print(f'{dir}: {len(os.listdir(os.path.join(root, dir)))}')
 
-def plot_confusion_matrix(test_labels, predictions, label_map, dir_results, is_show=True):
+def plot_confusion_matrix(iter, test_labels, predictions, label_map, dir_results, is_show=True):
     cm = confusion_matrix(test_labels.argmax(axis=1), predictions)
     
     plt.figure(figsize=(8, 6))
@@ -22,11 +22,11 @@ def plot_confusion_matrix(test_labels, predictions, label_map, dir_results, is_s
     plt.ylabel('True')
     plt.title('Confusion Matrix')
     plt.tight_layout()
-    plt.savefig(f'{dir_results}/confusion_matrix.pdf')
+    plt.savefig(f'{dir_results}/iteration_{iter}_confusion_matrix.pdf')
     if is_show:
         plt.show()
 
-def plot_metrics(history,dir_results, metrics=['loss', 'accuracy'], is_show=True):
+def plot_metrics(iter, history,dir_results, metrics=['loss', 'accuracy'], is_show=True):
     weighted_history = history
     # Plot loss and accuracy of training
     plt.figure(figsize=(6, 4))
@@ -35,7 +35,7 @@ def plot_metrics(history,dir_results, metrics=['loss', 'accuracy'], is_show=True
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig(f'{dir_results}/training_loss_plot.pdf')
+    plt.savefig(f'{dir_results}/iteration_{iter}_training_loss_plot.pdf')
     if is_show:
         print('Loss: ', weighted_history.history['loss'])
         print('Accuracy: ', weighted_history.history['accuracy'])
@@ -50,7 +50,7 @@ def plot_metrics(history,dir_results, metrics=['loss', 'accuracy'], is_show=True
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.savefig(f'{dir_results}/training_accuracy_plot.pdf')
+    plt.savefig(f'{dir_results}/iteration_{iter}_training_accuracy_plot.pdf')
     if is_show:
         plt.show()
 
