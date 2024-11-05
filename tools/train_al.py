@@ -93,6 +93,8 @@ def task_dalmax(args):
     # VARS
     EPOCHS_TRAIN_ACTIVE_LEARNING = 30
     INIT_IMAGES_PER_CLASS = 100
+    all_accuracies = []
+    all_train_sizes = []
 
     # Setup dir results
     if not os.path.exists(dir_results):
@@ -193,6 +195,9 @@ def task_dalmax(args):
             predictions = model.predict(test_images).argmax(axis=1)
             logger.warning("Calculating accuracy")
             accuracy = accuracy_score(test_labels.argmax(axis=1), predictions)
+            # Append accuracy and train size
+            all_accuracies.append(accuracy)
+            all_train_sizes.append(train_images.shape[0])
             
             # Save on file the final accuracy
             logger.warning(f"Final Test Accuracy Iteration {AUX}: {accuracy:.2f}")
@@ -207,7 +212,7 @@ def task_dalmax(args):
             # Random Sampling
             if type_active_learning == 'random_sampling':
                 logger.warning("Random Sampling")
-                selected_al_idx = DalMaxSampler.random_sampling(pool_images, batch_size*iterations)
+                selected_al_idx = DalMaxSampler.random_sampling(pool_images, batch_size)
             # Diversity Sampling
             elif type_active_learning == 'diversity_sampling':
                 logger.warning("Diversity Sampling")
@@ -280,6 +285,21 @@ def task_dalmax(args):
             logger.warning(f'Stopping iteration {i+1}/{iterations}: {e}')
             exit(1)
             break
+    
+    # Logger all accuracies and train sizes
+    logger.warning("All accuracies:")
+    logger.warning(all_accuracies)
+    logger.warning("All train sizes:")
+    logger.warning(all_train_sizes)
+    
+    # Criar um gráfico com a acurácia e o tamanho do conjunto de treinamento
+    plt.figure(figsize=(8, 6))
+    plt.plot(all_train_sizes, all_accuracies, 'o-')
+    plt.xlabel('Train Size')
+    plt.ylabel('Accuracy')
+    plt.title('Accuracy x Train Size')
+    plt.tight_layout()
+    plt.savefig(f'{dir_results}/iteration_final_accuracy_train_size.pdf')
     
     logger.warning("Task DalMax Done!")
     logger.warning("---------------------------------------------")
