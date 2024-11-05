@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from tensorflow.keras.preprocessing import image
+from tensorflow.keras.preprocessing import image # type: ignore
 import matplotlib.pyplot as plt
 
 from sklearn.metrics import confusion_matrix
