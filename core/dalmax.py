@@ -9,6 +9,7 @@ from scipy.spatial import distance
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 # np.random.seed(43) # Definir a semente para o gerador de números aleatórios do NumPy
+import gc
 
 # Técnicas de Active Learning
 class DalMaxSampler:
@@ -250,7 +251,7 @@ class DalMaxSampler:
         return np.argsort(-predictive_variance)[:batch_size]
     
     @staticmethod
-    def bayesian_sampling(model, pool, batch_size, n_samples=5):
+    def bayesian_samplingaa(model, pool, batch_size, n_samples=5):
         print("Init bayesian_sampling")
         # Configurar dropout durante a predição (ativa Monte Carlo Dropout)
         predictions = [model.predict(pool) for _ in range(n_samples)]
@@ -261,4 +262,31 @@ class DalMaxSampler:
         
         # Obter índices com maior incerteza
         top_indices = np.argsort(-predictive_variance)[:batch_size]
+        return top_indices
+    @staticmethod
+    def bayesian_sampling(model, pool, batch_size, n_samples=2, batch_size_inference=100):
+        print("Init bayesian_sampling")
+        num_samples = len(pool)
+        predictive_variances = []
+
+        for start in range(0, num_samples, batch_size_inference):
+            end = min(start + batch_size_inference, num_samples)
+            batch = pool[start:end]
+
+            # Coletar várias predições para cada amostra no lote atual
+            batch_predictions = [model.predict(batch) for _ in range(n_samples)]
+            batch_predictions = np.array(batch_predictions)  # (n_samples, batch_size_inference, num_classes)
+            
+            # Calcular a variância preditiva média por classe para o lote atual
+            batch_predictive_variance = np.mean(np.var(batch_predictions, axis=0), axis=1)
+            predictive_variances.extend(batch_predictive_variance)
+
+            # Libera a memória do lote e chama o coletor de lixo
+            del batch_predictions
+            gc.collect()
+
+        # Converter lista em array e obter os índices das amostras com maior incerteza
+        predictive_variances = np.array(predictive_variances)
+        top_indices = np.argsort(-predictive_variances)[:batch_size]
+
         return top_indices
