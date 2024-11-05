@@ -251,7 +251,7 @@ class DalMaxSampler:
         return np.argsort(-predictive_variance)[:batch_size]
     
     @staticmethod
-    def bayesian_samplingaa(model, pool, batch_size, n_samples=5):
+    def bayesian_sampling(model, pool, batch_size, n_samples=2):
         print("Init bayesian_sampling")
         # Configurar dropout durante a predição (ativa Monte Carlo Dropout)
         predictions = [model.predict(pool) for _ in range(n_samples)]
@@ -264,7 +264,7 @@ class DalMaxSampler:
         top_indices = np.argsort(-predictive_variance)[:batch_size]
         return top_indices
     @staticmethod
-    def bayesian_sampling(model, pool, batch_size, n_samples=2, batch_size_inference=100):
+    def bayesian_samplingbbb(model, pool, batch_size, n_samples=2, batch_size_inference=100):
         print("Init bayesian_sampling")
         num_samples = len(pool)
         predictive_variances = []
