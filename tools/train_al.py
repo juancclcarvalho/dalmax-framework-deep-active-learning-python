@@ -27,7 +27,7 @@ from core.model_dl import create_model, create_parallel_model, DQNAgent
 from core.dalmax import DalMaxSampler
 
 # Configuração do logger
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)  # Define o logger apenas para o seu módulo
 logger.setLevel(logging.DEBUG)
 
 # Criar um handler para escrever no arquivo de log
@@ -75,6 +75,10 @@ def valid_args(args):
     if args.type not in ['random_sampling','uncertainty_sampling', 'query_by_committee', 'diversity_sampling', 'core_set_selection', 'adversarial_sampling', 'adversarial_sampling_ultra', 'reinforcement_learning_sampling', 'expected_model_change', 'bayesian_sampling']:
         raise ValueError('Active Learning type must be: uncertainty_sampling, query_by_committee, diversity_sampling, core_set_selection, adversarial_sampling, adversarial_sampling_ultra, reinforcement_learning_sampling, expected_model_change or bayesian_sampling')
     
+    # Verifica se o seed é um inteiro válido > 0
+    if not isinstance(args.seed, int) or args.seed <= 0:
+        raise ValueError('Seed must be a positive integer')
+    
 def task_dalmax(args):
     # SETTINGS 
     # Vars from args
@@ -89,6 +93,9 @@ def task_dalmax(args):
 
     mult_gpu = args.mult_gpu
     use_gpu = args.use_gpu
+    seed = args.seed
+    # Set seed
+    np.random.seed(seed)
 
     # VARS
     EPOCHS_TRAIN_ACTIVE_LEARNING = 30
@@ -212,7 +219,7 @@ def task_dalmax(args):
             # Random Sampling
             if type_active_learning == 'random_sampling':
                 logger.warning("Random Sampling")
-                selected_al_idx = DalMaxSampler.random_sampling(pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.random_sampling(pool_images, batch_size, seed)
             # Diversity Sampling
             elif type_active_learning == 'diversity_sampling':
                 logger.warning("Diversity Sampling")
@@ -275,29 +282,30 @@ def task_dalmax(args):
             logger.warning(f"New Pool Size: {len(pool_images)}")
             logger.warning(f"Concluded iteration {i+1}/{iterations}. Next iteration...")
             logger.warning("---------------------------------------------")
+            
+            # Logger all accuracies and train sizes
+            logger.warning("All accuracies:")
+            logger.warning(all_accuracies)
+            logger.warning("All train sizes:")
+            logger.warning(all_train_sizes) 
 
             AUX += 1
 
             end_time = time.time()
             logger.warning(f"Total time iteration: {end_time - start_time:.2f} seconds")
-
+        
         except Exception as e:
             logger.warning(f'Stopping iteration {i+1}/{iterations}: {e}')
-            exit(1)
             break
     
-    # Logger all accuracies and train sizes
-    logger.warning("All accuracies:")
-    logger.warning(all_accuracies)
-    logger.warning("All train sizes:")
-    logger.warning(all_train_sizes)
+    
 
     # Criar um gráfico com a acurácia e o tamanho do conjunto de treinamento
     plt.figure(figsize=(8, 6))
     plt.plot(all_train_sizes, all_accuracies, 'o-')
     plt.xlabel('Train Size')
     plt.ylabel('Accuracy')
-    plt.title('Accuracy x Train Size')
+    plt.title(f'Accuracy x Train Size: {args.type}')
     plt.tight_layout()
     plt.savefig(f'{dir_results}/iteration_final_accuracy_train_size.pdf')
     
@@ -321,6 +329,7 @@ def main(args):
     if not args.mult_gpu:
         logger.warning(f"use_gpu: {args.use_gpu}")
     logger.warning(f"epochs to train: {args.epochs}")
+    logger.warning(f"seed: {args.seed}")
 
     if args.only_train:
         logger.warning("Task Only Train")
@@ -352,6 +361,9 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=10, help='Epochs size')
     # Only_train
     parser.add_argument('--only_train', type=bool, default=False, help='Only train the model')
+
+    # Seed for random
+    parser.add_argument('--seed', type=int, default=42, help='Seed for random')
 
     args = parser.parse_args()
 

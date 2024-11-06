@@ -14,7 +14,9 @@ import gc
 # Técnicas de Active Learning
 class DalMaxSampler:
     @staticmethod
-    def random_sampling(pool, batch_size):
+    def random_sampling(pool, batch_size, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
         indices = np.random.choice(len(pool), batch_size, replace=False)
         return indices
     

@@ -162,6 +162,7 @@ Parameters:
 - `epochs`: Number of epochs.
 - `mult_gpu`: Use multiple GPUs. Optional. If `True`, the model is trained with multiple GPUs. If not informed, the model is trained with a single GPU.
 - `use_gpu`: Use GPU. Optional. If `0`, the model is trained first with the CPU. If `1`, the model is trained with the second GPU. If not informed, the model is trained with the first GPU.
+- `seed`: Seed for random number generation. Optional. If not informed, the seed is randomly generated.
 
 ### Testing Deep Learning Models
 To test the models, run the following command:
