@@ -298,8 +298,6 @@ def task_dalmax(args):
             logger.warning(f'Stopping iteration {i+1}/{iterations}: {e}')
             break
     
-    
-
     # Criar um gráfico com a acurácia e o tamanho do conjunto de treinamento
     plt.figure(figsize=(8, 6))
     plt.plot(all_train_sizes, all_accuracies, 'o-')
