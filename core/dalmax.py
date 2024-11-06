@@ -21,7 +21,7 @@ class DalMaxSampler:
         return indices
     
     @staticmethod
-    def diversity_sampling(pool, batch_size):
+    def diversity_sampling(pool, batch_size, seed=42):
         start_time = time.time()
         print("Init diversity_sampling")
 
@@ -35,7 +35,7 @@ class DalMaxSampler:
         
         # Pipeline com PCA seguido de K-means
         pca = PCA(n_components=n_components)
-        kmeans = KMeans(n_clusters=n_clusters, max_iter=200, random_state=42)
+        kmeans = KMeans(n_clusters=n_clusters, max_iter=200, random_state=seed)
         predictor = Pipeline([('pca', pca), ('kmeans', kmeans)])
 
         # Ajuste no pool de dados achatados

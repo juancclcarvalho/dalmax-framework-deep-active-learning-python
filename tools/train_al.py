@@ -223,7 +223,7 @@ def task_dalmax(args):
             # Diversity Sampling
             elif type_active_learning == 'diversity_sampling':
                 logger.warning("Diversity Sampling")
-                selected_al_idx = DalMaxSampler.diversity_sampling(pool_images, batch_size)
+                selected_al_idx = DalMaxSampler.diversity_sampling(pool_images, batch_size, seed)
             # Uncertainty Sampling
             elif type_active_learning == 'uncertainty_sampling':
                 logger.warning("Uncertainty Sampling")
