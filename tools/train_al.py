@@ -1,4 +1,4 @@
-# Example usage: python tools/train_al.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9 --epochs 100 --mult_gpu True --use_gpu 0
+# Example usage: python tools/train_al.py --dir_train DATA/DATA_CIFAR10/train/ --dir_test DATA/DATA_CIFAR10/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9 --epochs 100 --seed 42 --mult_gpu True --use_gpu 0
 
 # System imports
 import os
