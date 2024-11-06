@@ -150,7 +150,7 @@ def task_dalmax(args):
         agent = DQNAgent(input_dim, output_dim)
 
     AUX = 0
-    while AUX < iterations:
+    while AUX < iterations + 1:
         logger.warning("\n\n\n\n")
 
         start_time = time.time()
@@ -291,7 +291,7 @@ def task_dalmax(args):
     logger.warning(all_accuracies)
     logger.warning("All train sizes:")
     logger.warning(all_train_sizes)
-    
+
     # Criar um gráfico com a acurácia e o tamanho do conjunto de treinamento
     plt.figure(figsize=(8, 6))
     plt.plot(all_train_sizes, all_accuracies, 'o-')
