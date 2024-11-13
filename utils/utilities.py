@@ -56,6 +56,11 @@ def plot_metrics(iter, history,dir_results, metrics=['loss', 'accuracy'], is_sho
 
 # Função para carregar imagens
 def load_images(data_dir, img_size=(32, 32)):
+    print(f'\n\n------------------')
+    print(f'Loading images from {data_dir}')
+    print(f'Image size: {img_size}')
+    print(f'------------------\n\n')
+
     images = []
     labels = []
     paths = []

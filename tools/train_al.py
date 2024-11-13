@@ -32,7 +32,8 @@ logger.setLevel(logging.DEBUG)
 
 # Criar um handler para escrever no arquivo de log
 text_time_log = time.strftime('%Y-%m-%d-%H-%M-%S')
-file_handler = logging.FileHandler(text_time_log + '-log-dalmax.log')
+PATH_LOG_FINAL = text_time_log + '-log-dalmax.log'
+file_handler = logging.FileHandler(PATH_LOG_FINAL)
 file_handler.setLevel(logging.DEBUG)
 
 # Criar um handler para imprimir no console
@@ -79,6 +80,10 @@ def valid_args(args):
     if not isinstance(args.seed, int) or args.seed <= 0:
         raise ValueError('Seed must be a positive integer')
     
+    # img_size
+    if args.img_size <= 0:
+        raise ValueError('Image size must be greater than 0')
+    
 def task_dalmax(args):
     # SETTINGS 
     # Vars from args
@@ -90,6 +95,7 @@ def task_dalmax(args):
     iterations = args.iterations
     test_size = args.test_size
     type_active_learning = args.type
+    img_size = args.img_size
 
     mult_gpu = args.mult_gpu
     use_gpu = args.use_gpu
@@ -99,7 +105,7 @@ def task_dalmax(args):
 
     # VARS
     EPOCHS_TRAIN_ACTIVE_LEARNING = 30
-    INIT_IMAGES_PER_CLASS = 100
+    INIT_IMAGES_PER_CLASS = 74
     all_accuracies = []
     all_train_sizes = []
 
@@ -114,12 +120,12 @@ def task_dalmax(args):
     # DATASET
     # Load dataset and preprocess
     logger.warning("Loading dataset: Test")
-    test_images, test_labels, label_map, paths_images = load_images(dir_test)
+    test_images, test_labels, label_map, paths_images = load_images(dir_test, img_size=(img_size, img_size))
     test_images = test_images / 255.0
     test_labels = to_categorical(test_labels, num_classes=len(label_map))
     
     logger.warning(f"Loading dataset: Pool")
-    images, labels, label_map, paths_images = load_images(dir_train)
+    images, labels, label_map, paths_images = load_images(dir_train, img_size=(img_size, img_size))
     images = images / 255.0
     labels = to_categorical(labels, num_classes=len(label_map))
 
@@ -310,6 +316,11 @@ def task_dalmax(args):
     logger.warning("Task DalMax Done!")
     logger.warning("---------------------------------------------")
 
+    # Move PATH_LOG_FINAL to dir_results
+    os.rename(PATH_LOG_FINAL, f'{dir_results}/{PATH_LOG_FINAL}')
+    exit()
+
+
 def main(args):
     start_time = time.time()
     logger.warning("Initializating Process")
@@ -331,6 +342,7 @@ def main(args):
 
     if args.only_train:
         logger.warning("Task Only Train")
+        
     else:
         logger.warning("Task DalMax + Train")
         task_dalmax(args)
@@ -362,6 +374,8 @@ if __name__ == '__main__':
 
     # Seed for random
     parser.add_argument('--seed', type=int, default=42, help='Seed for random')
+
+    parser.add_argument('--img_size', type=int, default=32, help='Image size')
 
     args = parser.parse_args()
 

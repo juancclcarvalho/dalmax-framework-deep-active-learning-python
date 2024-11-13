@@ -8,6 +8,7 @@ import sys
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 
 # TensorFlow and Sklearn
 from tensorflow.keras.utils import to_categorical # type: ignore
@@ -22,6 +23,30 @@ from core.model_dl import create_model, create_parallel_model
 import time
 
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+
+# Configuração do logger
+logger = logging.getLogger(__name__)  # Define o logger apenas para o seu módulo
+logger.setLevel(logging.DEBUG)
+
+# Criar um handler para escrever no arquivo de log
+text_time_log = time.strftime('%Y-%m-%d-%H-%M-%S')
+PATH_LOG_FINAL = text_time_log + '-log-dalmax.log'
+file_handler = logging.FileHandler(PATH_LOG_FINAL)
+file_handler.setLevel(logging.DEBUG)
+
+# Criar um handler para imprimir no console
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+
+# Definir o formato do log
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# Adicionar os handlers ao logger
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 def valid_args(args):
      # Testes de validação
@@ -40,147 +65,105 @@ def valid_args(args):
     if args.use_gpu not in [0, 1]:
         raise ValueError('Use GPU must be 0 or 1')
     
+    # img_size
+    if args.img_size <= 0:
+        raise ValueError('Image size must be greater than 0')
+    
 def main(args):
-    # SETTINGS 
-    # Dataset paths
-    dir_results = args.dir_results + f'/active_learning/{args.type}/'
-    if not os.path.exists(dir_results):
-        os.makedirs(dir_results)
+    try: 
+        # SETTINGS 
+        # Dataset paths
+        dir_results = args.dir_results + f'/train/active_learning/{args.type}/'
+        if not os.path.exists(dir_results):
+            os.makedirs(dir_results)
 
-    dir_train = args.dir_train
-    dir_test = args.dir_test
-    num_epochs = args.epochs
-    mult_gpu = args.mult_gpu
-    use_gpu = args.use_gpu
+        dir_train = args.dir_train
+        dir_test = args.dir_test
+        num_epochs = args.epochs
+        mult_gpu = args.mult_gpu
+        use_gpu = args.use_gpu
+        img_size = args.img_size
 
-    print(f"Deep Learning Type: {args.type}")
-    print(f"Number of epochs: {num_epochs}")
-    print(f"Multiple GPUs: {mult_gpu}")
+        logger.warning(f"Deep Learning Type: {args.type}")
+        logger.warning(f"Number of epochs: {num_epochs}")
+        logger.warning(f"Multiple GPUs: {mult_gpu}")
+        logger.warning(f"Use GPU: {use_gpu}")
+        logger.warning(f"Image size: {img_size}")
+        logger.warning(f"Train dataset directory: {dir_train}")
+        logger.warning(f"Test dataset directory: {dir_test}")
+        logger.warning(f"Results directory: {dir_results}")
 
-    # DATASET
-    # Load dataset and preprocess
-    images, labels, label_map, paths_images = load_images(dir_train)
-    print(f"Classes label_map train: {label_map}")
+        # DATASET
+        # Load dataset and preprocess
+        images, labels, label_map, paths_images = load_images(data_dir=dir_train, img_size=(img_size, img_size))
+        logger.warning(f"Classes label_map train: {label_map}")
 
-    images = images / 255.0
-    labels = to_categorical(labels, num_classes=len(label_map))
+        images = images / 255.0
+        labels = to_categorical(labels, num_classes=len(label_map))
 
-    # Split data
-    train_images = images
-    train_labels = labels
+        # Split data
+        train_images = images
+        train_labels = labels
 
-    if args.type == 'random':
-        # TODO: No futuro fazer esse processo automaticamente com base na quantidade de imagens do dataset do DAL
-        new_train_images = []
-        new_train_labels = []
+        logger.warning("Contagem de arquivos no diretório de treino:")
         for label_name, label_idx in label_map.items():
-            idxs = np.where(train_labels.argmax(axis=1) == label_idx)[0]
-            """
-            BASE: 
-            8: 197
-            6: 207
-            7: 187
-            5: 189
-            1: 190
-            2: 183
-            3: 181
-            0: 199
-            4: 195
-            9: 198
-            """
-            selected_idxs = np.random.choice(idxs, 
-                                                  200 if label_name == '8' 
-                                                else 200 if label_name == '6'
-                                                else 200 if label_name == '7'
-                                                else 200 if label_name == '5'
-                                                else 200 if label_name == '1'
-                                                else 200 if label_name == '2'
-                                                else 200 if label_name == '3'
-                                                else 200 if label_name == '0'
-                                                else 200 if label_name == '4'
-                                                else 200, replace=False)
-            
-            new_train_images.append(train_images[selected_idxs])
-            new_train_labels.append(train_labels[selected_idxs])
-
-        # Converter para numpy array
-        new_train_images = np.concatenate(new_train_images)
-        new_train_labels = np.concatenate(new_train_labels)
-
-        # Atualiza a variável de treino
-        train_images = new_train_images
-        train_labels = new_train_labels
-
-        # Save all selected images in their respective folders in dir_results/selected_images
-        if not os.path.exists(f'{dir_results}/selected_images'):
-            print(f"Creating selected_images folder on {dir_results}/selected_images")
-            os.makedirs(f'{dir_results}/selected_images')
+            logger.warning(f"{label_name}: {len(np.where(train_labels.argmax(axis=1) == label_idx)[0])} ({np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%)")
         
-        print(f"Saving selected images in {dir_results}/selected_images")
-        # Criar diretórios para cada classe em selected_images e salvar cada imagem de acordo com a classe
-        for label_name, label_idx in label_map.items():
-            if not os.path.exists(f'{dir_results}/selected_images/{label_name}'):
-                os.makedirs(f'{dir_results}/selected_images/{label_name}')
-            idxs = np.where(train_labels.argmax(axis=1) == label_idx)[0]
-            for idx in idxs:
-                img = train_images[idx]
-                plt.imsave(f'{dir_results}/selected_images/{label_name}/{paths_images[idx].split("/")[-1]}', img)
+        # MODEL
+        # Create model
+        # Create model
+        if mult_gpu:
+            model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
+        else:
+            model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map), mult_gpu=mult_gpu, use_gpu=use_gpu)
 
-        print(f"Images saved in {dir_results}/selected_images\n\n")
+        # TRAINING
+        start_time = time.time()
+        
+        final_weighted_history = None
+        # Treinar o modelo
+        weighted_history = model.fit(train_images, train_labels, epochs=num_epochs, verbose=1)
+        final_weighted_history = weighted_history
 
-    print("Contagem de arquivos no diretório de treino:")
-    for label_name, label_idx in label_map.items():
-        print(f"{label_name}: {len(np.where(train_labels.argmax(axis=1) == label_idx)[0])} ({np.mean(train_labels.argmax(axis=1) == label_idx) * 100:.2f}%)")
-    
-    # MODEL
-    # Create model
-     # Create model
-    if mult_gpu:
-        model = create_parallel_model(input_shape=train_images.shape[1:], num_classes=len(label_map))
-    else:
-        model = create_model(input_shape=train_images.shape[1:], num_classes=len(label_map), mult_gpu=mult_gpu, use_gpu=use_gpu)
+        end_time = time.time()
+        logger.warning(f"Total time: {end_time - start_time:.2f} seconds")
+        
+        # Save time on infos file
+        with open(f'{dir_results}/infos.txt', 'w') as f:
+            f.write(f"Total time: {end_time - start_time:.2f} seconds\n")
+        
+        # SAVE MODEL
+        model.save(f'{dir_results}/{args.type}_al_model.h5')
 
-    # TRAINING
-    start_time = time.time()
-    
-    final_weighted_history = None
-    # Treinar o modelo
-    weighted_history = model.fit(train_images, train_labels, epochs=num_epochs, verbose=1)
-    final_weighted_history = weighted_history
+        # Plot training metrics
+        plot_metrics("0000", final_weighted_history, dir_results, metrics=['loss', 'accuracy'], is_show=False)
 
-    end_time = time.time()
-    print(f"Total time: {end_time - start_time:.2f} seconds")
-    
-    # Save time on infos file
-    with open(f'{dir_results}/infos.txt', 'w') as f:
-        f.write(f"Total time: {end_time - start_time:.2f} seconds\n")
-    
-    # SAVE MODEL
-    model.save(f'{dir_results}/{args.type}_al_model.h5')
+        # EVALUATION
+        # Avaliação final
+        test_images, test_labels, label_map, paths_images = load_images(data_dir=dir_test, img_size=(img_size, img_size))
+        logger.warning(f"Classes label_map test: {label_map}")
+        test_images = test_images / 255.0
+        test_labels = to_categorical(test_labels, num_classes=len(label_map))
+        predictions = model.predict(test_images).argmax(axis=1)
+        accuracy = accuracy_score(test_labels.argmax(axis=1), predictions)
+        text_final = (f"Final Test Accuracy: {accuracy * 100:.2f}%")
+        
+        # Save on file the final accuracy
+        with open(f'{dir_results}/final_accuracy.txt', 'w') as f:
+            f.write(text_final)
+        logger.warning(text_final)
 
-    # Plot training metrics
-    plot_metrics(final_weighted_history, dir_results, metrics=['loss', 'accuracy'], is_show=False)
+        # Plot confusion matrix
+        plot_confusion_matrix("0000", test_labels=test_labels, predictions=predictions, label_map=label_map, dir_results=dir_results, is_show=False)
+        logger.warning(f"Results saved in {dir_results}")
+        logger.warning(f"Deep Learning Type: {args.type}")
+        logger.warning("Done!")
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        # Move PATH_LOG_FINAL to dir_results
+        os.rename(PATH_LOG_FINAL, f'{dir_results}/{PATH_LOG_FINAL}')
+        exit()
 
-    # EVALUATION
-    # Avaliação final
-    test_images, test_labels, label_map, paths_images = load_images(dir_test)
-    print(f"Classes label_map test: {label_map}")
-    test_images = test_images / 255.0
-    test_labels = to_categorical(test_labels, num_classes=len(label_map))
-    predictions = model.predict(test_images).argmax(axis=1)
-    accuracy = accuracy_score(test_labels.argmax(axis=1), predictions)
-    text_final = (f"Final Test Accuracy: {accuracy * 100:.2f}%")
-    
-    # Save on file the final accuracy
-    with open(f'{dir_results}/final_accuracy.txt', 'w') as f:
-        f.write(text_final)
-    print(text_final)
-
-    # Plot confusion matrix
-    plot_confusion_matrix(test_labels=test_labels, predictions=predictions, label_map=label_map, dir_results=dir_results, is_show=False)
-    print(f"Results saved in {dir_results}")
-    print(f"Deep Learning Type: {args.type}")
-    print("Done!")
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DalMax - Framework for Deep Active Learning with TensorFlow 2.0')
     
@@ -193,6 +176,8 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=10, help='Epochs size')
     parser.add_argument('--mult_gpu', type=bool, default=False, help='Use multiple GPUs')
     parser.add_argument('--use_gpu', type=int, default=0, help='Use GPU: 0 or 1')
+    # img_size
+    parser.add_argument('--img_size', type=int, default=32, help='Image size')
     args = parser.parse_args()
 
     valid_args(args)

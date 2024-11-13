@@ -1,6 +1,7 @@
 # My LOCAL Files
 DATA/daninhas
 DATA/DATA_CIFAR10
+DATA/daninhas_balanceado
 
 local_assets/
 results/

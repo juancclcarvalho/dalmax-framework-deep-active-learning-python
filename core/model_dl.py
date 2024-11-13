@@ -65,10 +65,14 @@ def create_model(input_shape, num_classes, mult_gpu=False, use_gpu=0):
         # Defina qual GPU será visível antes de importar o TensorFlow
         os.environ["CUDA_VISIBLE_DEVICES"] = str(use_gpu)
 
-    # Imprimir a versão do TensorFlow
-    print(f"\n\nTensorFlow version: {tf.__version__}")
+    print(f"\n\n--------------------------------------")
+    print(f"CREATING MODEL")
+    print(f"TensorFlow version: {tf.__version__}")
     print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
-    print(f"Using GPU: {os.environ.get('CUDA_VISIBLE_DEVICES')}\n\n\n\n\n\n")
+    print(f"Using GPU: {os.environ.get('CUDA_VISIBLE_DEVICES')}")
+    print(f"Input shape: {input_shape}")
+    print(f"Number of classes: {num_classes}")
+    print(f"--------------------------------------\n\n")
 
     base_model = VGG16(weights='imagenet', include_top=False, input_shape=input_shape)
 

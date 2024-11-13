@@ -128,6 +128,8 @@ To train the models, run the following command:
 - `mult_gpu`: Use multiple GPUs. Optional. If `True`, the model is trained with multiple GPUs. If not informed, the model is trained with a single GPU.
 - `use_gpu`: Use GPU. Optional. If `0`, the model is trained first with the CPU. If `1`, the model is trained with the second GPU. If not informed, the model is trained with the first GPU.
 - `only_train`: Train the model only. Optional. If `True`, the model is trained only. If not informed, the process executes the active learning strategy and trains the model.
+- `img_size`: Image size. Optional. If not informed, the image size is 32x32. Example --img_size 64.
+
 
 #### Results
 The results are saved in the `results` folder. The following files are generated:
@@ -163,6 +165,7 @@ Parameters:
 - `mult_gpu`: Use multiple GPUs. Optional. If `True`, the model is trained with multiple GPUs. If not informed, the model is trained with a single GPU.
 - `use_gpu`: Use GPU. Optional. If `0`, the model is trained first with the CPU. If `1`, the model is trained with the second GPU. If not informed, the model is trained with the first GPU.
 - `seed`: Seed for random number generation. Optional. If not informed, the seed is randomly generated.
+- `img_size`: Image size. Optional. If not informed, the image size is 32x32. Example --img_size 64.
 
 ### Testing Deep Learning Models
 To test the models, run the following command:
