@@ -5,7 +5,7 @@ import random
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential # type: ignore
-from tensorflow.keras.layers import Dense, Flatten # type: ignore
+from tensorflow.keras.layers import Dense, Flatten, GlobalAveragePooling2D, Dropout # type: ignore
 from tensorflow.keras.applications import VGG16 # type: ignore
 
 class DQNAgent:
@@ -74,16 +74,31 @@ def create_model(input_shape, num_classes, mult_gpu=False, use_gpu=0):
     print(f"Number of classes: {num_classes}")
     print(f"--------------------------------------\n\n")
 
-    base_model = VGG16(weights='imagenet', include_top=False, input_shape=input_shape)
+    # base_model = VGG16(weights='imagenet', include_top=False, input_shape=input_shape)
+    # Base model Resnet 50
+    base_model = tf.keras.applications.ResNet50(weights='imagenet', include_top=False, input_shape=input_shape)
 
     # base_model = EfficientNetB7(weights='imagenet', include_top=False, input_shape=input_shape)
-    
+    data_augmentation = tf.keras.Sequential([
+        tf.keras.layers.RandomFlip("horizontal_and_vertical"),
+        tf.keras.layers.RandomRotation(0.2),
+        tf.keras.layers.RandomContrast(0.2),
+    ])
+
     model = Sequential([
             base_model,
-            Flatten(),
-            Dense(256, activation='relu'),
+            GlobalAveragePooling2D(),
+            Dropout(0.4),
             Dense(num_classes, activation='softmax')
         ])
     
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy','mae', 'mse']) #  
+    # Anotação: categorical_crossentropy é a função de perda correta para classificação multiclasse
+    # sparse_categorical_crossentropy é a função de perda correta para classificação multiclasse com rótulos inteiros
+    
+
+    # Aumentar learning rate: 0.1, 0.01, 0.001: testar
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0007)
+    model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+
+    model.summary()
     return model

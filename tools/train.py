@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import logging
 
 # TensorFlow and Sklearn
+import tensorflow as tf # type: ignore
 from tensorflow.keras.utils import to_categorical # type: ignore
 from sklearn.metrics import accuracy_score
 
@@ -68,7 +69,21 @@ def valid_args(args):
     # img_size
     if args.img_size <= 0:
         raise ValueError('Image size must be greater than 0')
-    
+
+# This function will plot images in the form of a grid with 1 row and 5 columns where images are placed in each column.
+def plotImages(images_arr):
+    fig, axes = plt.subplots(1, 5, figsize=(20,20))
+    axes = axes.flatten()
+    for img, ax in zip( images_arr, axes):
+        ax.imshow(img)
+        ax.axis('off')
+        ax.set_title('Image after data augmentation')
+    plt.tight_layout()
+    # plt.show()
+
+    plt.savefig("result_data_augmentation_training_predict.pdf")
+
+
 def main(args):
     try: 
         # SETTINGS 
@@ -104,6 +119,61 @@ def main(args):
         # Split data
         train_images = images
         train_labels = labels
+        
+        testing_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
+        testing_generator = testing_datagen.flow_from_directory(
+            dir_test, 
+            shuffle=False, 
+            seed=42,
+            color_mode="rgb", 
+            class_mode="categorical",
+            target_size=(img_size, img_size),
+            batch_size=64)
+        
+        do_data_augmentation = True #@param {type:"boolean"}
+        
+        if do_data_augmentation:
+            
+            train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+                rescale = 1./255,
+                rotation_range=90,
+                horizontal_flip=True,
+                width_shift_range=0.2, 
+                height_shift_range=0.2,
+                shear_range=0.2, 
+                zoom_range=0.2,
+                fill_mode='nearest',
+                brightness_range=[0.2,1.0])
+        else:
+            train_datagen = testing_datagen 
+        
+        train_generator = train_datagen.flow_from_directory(
+            dir_train,
+            subset="training", 
+            shuffle=True, 
+            seed=42,
+            color_mode="rgb", 
+            class_mode="categorical",
+            target_size=(img_size, img_size),
+            batch_size=32)
+        
+        sample_training_images, _ = next(train_generator)
+
+        # plot images
+        sample_training_images, _ = next(train_generator)
+        sample_training_images, _ = next(train_generator)
+        plotImages(sample_training_images[:5])
+
+        logger.warning('\n\n\n\n---------------------\ntrain.size: %.2f' % train_generator.batch_size)
+        logger.warning('train.samples: %.2f' % train_generator.samples)
+        logger.warning('train-size/samples: %.2f' % (train_generator.samples//train_generator.batch_size))
+        logger.warning('\n')
+
+        # Testing print 
+        logger.warning('\n\n\n\n---------------------\ntest.size: %.2f' % testing_generator.batch_size)
+        logger.warning('test.samples: %.2f' % testing_generator.samples)
+        logger.warning('test-size/samples: %.2f' % (testing_generator.samples//testing_generator.batch_size))
+        logger.warning('\n')
 
         logger.warning("Contagem de arquivos no diretório de treino:")
         for label_name, label_idx in label_map.items():
@@ -122,7 +192,16 @@ def main(args):
         
         final_weighted_history = None
         # Treinar o modelo
-        weighted_history = model.fit(train_images, train_labels, epochs=num_epochs, verbose=1)
+        weighted_history = model.fit(train_generator, epochs=num_epochs, verbose=1)
+
+        val_steps_per_epoch = int(np.ceil(testing_generator.samples//testing_generator.batch_size))
+        # final_loss, final_accuracy 
+        # Measure accuracy and loss after training
+        result_evaluate = model.evaluate(testing_generator, verbose=1)
+
+        logger.warning(f'Final loss evaluate: {result_evaluate[0]}')
+        logger.warning(f'Final accuracy evaluate: {result_evaluate[1]}')
+        
         final_weighted_history = weighted_history
 
         end_time = time.time()
@@ -138,6 +217,11 @@ def main(args):
         # Plot training metrics
         plot_metrics("0000", final_weighted_history, dir_results, metrics=['loss', 'accuracy'], is_show=False)
 
+        
+
+        # exit()
+
+
         # EVALUATION
         # Avaliação final
         test_images, test_labels, label_map, paths_images = load_images(data_dir=dir_test, img_size=(img_size, img_size))
@@ -146,7 +230,7 @@ def main(args):
         test_labels = to_categorical(test_labels, num_classes=len(label_map))
         predictions = model.predict(test_images).argmax(axis=1)
         accuracy = accuracy_score(test_labels.argmax(axis=1), predictions)
-        text_final = (f"Final Test Accuracy: {accuracy * 100:.2f}%")
+        text_final = (f"Final Test Accuracy predict: {accuracy * 100:.2f}%")
         
         # Save on file the final accuracy
         with open(f'{dir_results}/final_accuracy.txt', 'w') as f:

@@ -54,6 +54,15 @@ def plot_metrics(iter, history,dir_results, metrics=['loss', 'accuracy'], is_sho
     if is_show:
         plt.show()
 
+def augment_image(img_array):
+    import tensorflow as tf
+    # Aplciar 4 técnicas de data augmentation
+    img_array = tf.image.flip_left_right(img_array)
+    img_array = tf.image.rot90(img_array)
+    img_array = tf.image.random_brightness(img_array, 0.2)
+    img_array = tf.image.random_contrast(img_array, 0.2, 0.5)
+
+
 # Função para carregar imagens
 def load_images(data_dir, img_size=(32, 32)):
     print(f'\n\n------------------')
@@ -71,6 +80,11 @@ def load_images(data_dir, img_size=(32, 32)):
             img_path = os.path.join(class_dir, img_name)
             img = image.load_img(img_path, target_size=img_size)
             img_array = image.img_to_array(img)
+
+            # Aplicar data augmentation aqui
+            # img_array = augment_image(img_array)
+
+
             images.append(img_array)
             labels.append(label_idx)
             paths.append(img_path)

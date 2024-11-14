@@ -1,4 +1,4 @@
-# Usage example: python3 mytest.py results/active_learning/uncertainty_sampling/selected_images/
+# Usage example: python tools/analysis_tools/count_files_folder.py DATA/daninhas_full/test
 import os
 import sys
 

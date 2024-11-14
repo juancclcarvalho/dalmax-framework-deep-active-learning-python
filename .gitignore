@@ -1,7 +1,8 @@
 # My LOCAL Files
-DATA/daninhas
-DATA/DATA_CIFAR10
-DATA/daninhas_balanceado
+DATA/daninhas/
+DATA/DATA_CIFAR10/
+DATA/daninhas_balanceado/
+DATA/daninhas_full/
 
 local_assets/
 results/
