@@ -3,7 +3,8 @@ DATA/daninhas/
 DATA/DATA_CIFAR10/
 DATA/daninhas_balanceado/
 DATA/daninhas_full/
-
+DATA/daninhas_balanceado_2/
+models_saved/
 local_assets/
 results/
 

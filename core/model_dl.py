@@ -88,7 +88,7 @@ def create_model(input_shape, num_classes, mult_gpu=False, use_gpu=0):
     model = Sequential([
             base_model,
             GlobalAveragePooling2D(),
-            Dropout(0.4),
+            Dropout(0.2),
             Dense(num_classes, activation='softmax')
         ])
     
@@ -97,7 +97,8 @@ def create_model(input_shape, num_classes, mult_gpu=False, use_gpu=0):
     
 
     # Aumentar learning rate: 0.1, 0.01, 0.001: testar
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0007)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
+    # optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9)
     model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
     model.summary()
