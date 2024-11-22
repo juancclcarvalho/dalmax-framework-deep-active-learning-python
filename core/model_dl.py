@@ -87,6 +87,7 @@ class DeepLearning():
         train_loss = []
         train_acc = []
         all_times = []
+        print("Device: ", self.device)
 
         self.logger.warning("Init training...")
 
@@ -98,6 +99,8 @@ class DeepLearning():
             start_time = time.time()
 
             for inputs, labels in train_loader:
+                print("Inputs: ", inputs)
+                print("Labels: ", labels)
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
 
                 # Zera os gradientes

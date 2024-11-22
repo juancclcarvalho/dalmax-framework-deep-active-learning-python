@@ -48,7 +48,7 @@ def main(args):
     logger.warning("----------------------------------------------------------\n")
     
     # Create the dataset
-    myDataset = Dataset(data_dir, batch_size, img_size)
+    myDataset = Dataset(data_dir=data_dir, batch_size=batch_size, img_size=img_size, logger=logger)
 
     # Load the dataset (train and test loaders)
     train_loader = myDataset.get_train_loader()

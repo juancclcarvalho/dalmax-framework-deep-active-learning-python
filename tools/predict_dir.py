@@ -51,7 +51,7 @@ def main(args):
     logger.warning("Loading the model...")
     __ = myDL.load_model_pth(path_model)
 
-    logger.warning("Evaluation on the test set:" + data_dir_test)
+    logger.warning("Evaluation on the test set: " + data_dir_test)
     correct = 0
     total = 0
 
