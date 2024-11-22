@@ -1,12 +1,10 @@
 # My LOCAL Files
-DATA/daninhas/
-DATA/DATA_CIFAR10/
-DATA/daninhas_balanceado/
-DATA/daninhas_full/
-DATA/daninhas_balanceado_2/
+DATA/*
+
 models_saved/
 local_assets/
 results/
+daninhas_novo
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

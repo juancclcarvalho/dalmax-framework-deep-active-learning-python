@@ -32,7 +32,7 @@ logger.setLevel(logging.DEBUG)
 
 # Criar um handler para escrever no arquivo de log
 text_time_log = time.strftime('%Y-%m-%d-%H-%M-%S')
-PATH_LOG_FINAL = text_time_log + '-log-dalmax.log'
+PATH_LOG_FINAL = 'logs/' + text_time_log + '-log-dalmax.log'
 file_handler = logging.FileHandler(PATH_LOG_FINAL)
 file_handler.setLevel(logging.DEBUG)
 

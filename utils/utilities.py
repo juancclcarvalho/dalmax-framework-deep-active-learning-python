@@ -6,6 +6,27 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 
+import os
+import sys
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms, models
+import matplotlib.pyplot as plt
+import time
+
+import torch.backends.cudnn as cudnn
+import time
+from PIL import Image
+import argparse
+import warnings
+
+# GLOBAL SETTINGS
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
+
+
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 def count_files(dir_path):
@@ -83,9 +104,79 @@ def load_images(data_dir, img_size=(32, 32)):
 
             # Aplicar data augmentation aqui
             # img_array = augment_image(img_array)
-
-
+            
             images.append(img_array)
             labels.append(label_idx)
             paths.append(img_path)
     return np.array(images), np.array(labels), label_map, paths
+
+def denormalize_image(image, mean, std):
+    """
+    Desnormaliza uma imagem normalizada.
+    :param image: Tensor normalizado
+    :param mean: Lista de médias usadas na normalização
+    :param std: Lista de desvios padrão usados na normalização
+    :return: Tensor desnormalizado
+    """
+    mean = torch.tensor(mean).view(3, 1, 1)
+    std = torch.tensor(std).view(3, 1, 1)
+    return image * std + mean
+
+def plot_n_examples(N, train_loader, num_classes):
+    class_counts = {cls: 0 for cls in range(num_classes)}
+    selected_images = []
+    selected_labels = []
+
+    for inputs, labels in train_loader:
+        for input, label in zip(inputs, labels):
+            if class_counts[label.item()] < 10:
+                selected_images.append(input)
+                selected_labels.append(label)
+                class_counts[label.item()] += 1
+            if all(count >= 10 for count in class_counts.values()):
+                break
+        if all(count >= 10 for count in class_counts.values()):
+            break
+
+    selected_images = torch.stack(selected_images)
+    selected_labels = torch.stack(selected_labels)
+
+    INDEX = selected_labels[0].item()
+    logger.warning(f"Nome do arquivo Classe selecionada: {train_loader.dataset.samples[INDEX][0]}")
+
+
+    # Imprimir o nome original de cada imagem selecionada
+    logger.warning(f'Selected {N} images:')
+    for i, label in enumerate(selected_labels):
+        logger.warning(f"Image {i+1}: {train_loader.dataset.samples[label.item()][0]}")
+        pass
+
+    # Parâmetros de normalização usados em transforms.Normalize
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+
+    plt.figure(figsize=(10, 10))
+    for i in range(N):
+        plt.subplot(5, 5, i+1)
+        image = denormalize_image(selected_images[i], mean, std)  # Desnormaliza a imagem
+        image = image.permute(1, 2, 0).clip(0, 1)  # Permuta dimensões e clipe valores para [0, 1]
+        plt.imshow(image)
+        plt.title(train_loader.dataset.classes[selected_labels[i].item()])
+        plt.axis("off")
+
+    plt.tight_layout()
+    plt.savefig(f"selected_{N}_images_original.pdf")
+
+    plt.figure(figsize=(10, 10))
+    for i in range(N):
+        plt.subplot(5, 5, i+1)
+        plt.imshow(selected_images[i].permute(1, 2, 0))
+        plt.title(train_loader.dataset.classes[selected_labels[i].item()])
+        plt.axis("off")
+    plt.tight_layout()
+    plt.savefig(f"selected_{N}_images_transformed.pdf")
+
+    # Imprimir a porcentagem de cada classe selecionada selected_images
+    logger.warning("Porcentagem de cada classe selecionada:")
+    for cls, count in class_counts.items():
+        logger.warning(f"Class {cls}: {count} ({count / 10 * 100:.0f}%)")
