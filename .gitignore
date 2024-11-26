@@ -1,10 +1,9 @@
 # My LOCAL Files
 DATA/*
 
-models_saved/
 local_assets/
 results/
-daninhas_novo
+logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

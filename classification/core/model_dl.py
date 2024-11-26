@@ -99,8 +99,10 @@ class DeepLearning():
             start_time = time.time()
 
             for inputs, labels in train_loader:
-                print("Inputs: ", inputs)
-                print("Labels: ", labels)
+                # Quantos exemplos selecionados
+                print("Size of Inputs: ", inputs.size())
+                print("Size of Labels: ", labels.size())
+
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
 
                 # Zera os gradientes

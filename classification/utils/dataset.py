@@ -3,7 +3,6 @@ from torch.utils.data import DataLoader, Subset
 from torchvision import datasets, transforms
 from PIL import Image
 import random
-from torch.utils.data import DataLoader, Subset
 
 class Dataset():
     def __init__(self, data_dir="DATA/dataset/", batch_size=32, img_size=128, seed=42, n_init_labeled=100, is_active_learning=False, logger=None):
@@ -93,113 +92,79 @@ class Dataset():
         self.logger.warning("------------------------------------\n")
         self.logger.warning("Configuring data loaders for active learning (random selection)...")
         
-        # Dataset completo
-        full_dataset = self.train_loader.dataset
-        num_classes = len(full_dataset.classes)
-        total_images = self.n_init_labeled
+        train_dataset = self.train_loader
 
-        if total_images > len(full_dataset):
-            raise ValueError("n_init_labeled is greater than the total number of images in the dataset.")
-
-        # Selecionar índices de forma aleatória
-        labelled_indices = random.sample(range(len(full_dataset)), total_images)
-
-        # Criar o conjunto rotulado
-        labelled_dataset = Subset(full_dataset, labelled_indices)
-        self.bucket_labelled_loader = DataLoader(labelled_dataset, batch_size=self.batch_size, shuffle=False)
-
-        # Calcular a frequência de cada classe no bucket_labelled_loader
-        class_counts = {class_idx: 0 for class_idx in range(num_classes)}
-        for idx in labelled_indices:
-            label = full_dataset.targets[idx]
-            class_counts[label] += 1
-
-        self.logger.warning("------------------------------------\n")
-        self.logger.warning("Before configuring pool and bucket loaders:")
-        self.logger.warning(f"Pool unlabelled loader size: {len(full_dataset)}")
-        self.logger.warning(f"Bucket labelled loader size: {len(labelled_dataset)}")
-
-        self.logger.warning("\nClass frequencies in bucket_labelled_loader:")
-        for class_idx, count in class_counts.items():
-            class_name = full_dataset.classes[class_idx]
-            self.logger.warning(f"Class '{class_name}' contains {count} images")
+        # Imprimir o item 0 do train_loader (img, classe, path)
+        print(train_dataset.dataset.samples[0])
+        print(train_dataset.dataset.classes[train_dataset.dataset.samples[0][1]])
+        print(train_dataset.dataset.samples[0][0])
+        import matplotlib.pyplot as plt
+        import numpy as np
+        plt.imshow(np.transpose(train_dataset.dataset.samples[0][0], (1, 2, 0)))
+        plt.title(f"Classe: {train_dataset.dataset.classes[train_dataset.dataset.samples[0][1]]}")
         
-        # Criar o conjunto não rotulado
-        unlabelled_indices = list(set(range(len(full_dataset))) - set(labelled_indices))
-        unlabelled_dataset = Subset(full_dataset, unlabelled_indices)
-
-        self.pool_unlabelled_loader = unlabelled_dataset
-        self.bucket_labelled_loader = labelled_dataset
-
-        self.logger.warning("------------------------------------\n")
-        self.logger.warning("After configuring pool and bucket loaders:")
-        print("Pool unlabelled loader size: ", len(self.pool_unlabelled_loader))
-        print("Bucket labelled loader size: ", len(self.bucket_labelled_loader))
-
-        # Classes 
-        print("Classes: ", self.pool_unlabelled_loader.dataset.classes)
-
-    def configure_data_loaders_active_learning_init_balanced(self):
-        self.logger.warning("------------------------------------\n")
-        self.logger.warning("Configuring data loaders for active learning...")
-        # Dataset completo
-        full_dataset = self.train_loader.dataset
-        num_classes = len(full_dataset.classes)
-        images_per_class = self.n_init_labeled // num_classes
-
-        self.logger.warning("------------------------------------\n")
-        self.logger.warning("Before configuring pool and bucket loaders:")
-        self.logger.warning(f"Pool unlabelled loader size: {len(full_dataset)}")
-        self.logger.warning(f"Bucket labelled loader size: {len(self.bucket_labelled_loader)}")
-
-        if images_per_class == 0:
-            raise ValueError("n_init_labeled is too small to distribute across all classes.")
-
-        # Organizar índices por classe
-        class_to_indices = {class_idx: [] for class_idx in range(num_classes)}
-        for idx, (_, label) in enumerate(full_dataset.samples):
-            class_to_indices[label].append(idx)
-
-        # Garantir que há imagens suficientes para a distribuição
-        for class_idx, indices in class_to_indices.items():
-            if len(indices) < images_per_class:
-                raise ValueError(f"Not enough images in class '{full_dataset.classes[class_idx]}' for the initial labeled pool.")
-
-        # Selecionar imagens para o conjunto rotulado
-        labelled_indices = []
-        for class_idx in range(num_classes):
-            labelled_indices.extend(class_to_indices[class_idx][:images_per_class])
-
-        # Criar o conjunto rotulado
-        labelled_dataset = Subset(full_dataset, labelled_indices)
-        self.bucket_labelled_loader = DataLoader(labelled_dataset, batch_size=self.batch_size, shuffle=False)
-
-        # Calcular a frequência de cada classe no bucket_labelled_loader
-        class_counts = {class_idx: 0 for class_idx in range(num_classes)}
-        for idx in labelled_indices:
-            label = full_dataset.targets[idx]
-            class_counts[label] += 1
-
-        self.logger.warning("Class frequencies in bucket_labelled_loader:")
-        for class_idx, count in class_counts.items():
-            class_name = full_dataset.classes[class_idx]
-            self.logger.warning(f"Class '{class_name}' contains {count} images")
-        # Criar o conjunto não rotulado
-        unlabelled_indices = list(set(range(len(full_dataset))) - set(labelled_indices))
-        unlabelled_dataset = Subset(full_dataset, unlabelled_indices)
-        self.pool_unlabelled_loader = DataLoader(unlabelled_dataset, batch_size=self.batch_size, shuffle=True)
+        plt.show()
+        exit()
         
+        self.logger.warning(f"Initial labeled set size: {len(labeled_subset)}")
+        self.logger.warning(f"Initial unlabeled set size: {len(unlabeled_subset)}")
         self.logger.warning("------------------------------------\n")
-        self.logger.warning("After configuring pool and bucket loaders:")
-        self.logger.warning(f"Pool unlabelled loader size: {len(unlabelled_dataset)}")
-        self.logger.warning(f"Bucket labelled loader size: {len(labelled_dataset)}")
+
+    def select_samples_random(self, n_query):
+        self.logger.warning("------------------------------------\n")
+        self.logger.warning(f"Selecting {n_query} samples randomly from the unlabeled pool...")
+        
+        # Selecionar aleatoriamente {n_query} índices do pool_unlabelled_loader
+        unlabeled_indices = list(range(len(self.pool_unlabelled_loader.dataset)))
+        random.seed(self.seed)
+        selected_indices = random.sample(unlabeled_indices, min(n_query, len(unlabeled_indices)))
+        
+        self.logger.warning(f"Selected indices: {selected_indices}")
+        self.logger.warning("------------------------------------\n")
+        return selected_indices
+
+    def update_datasets(self, samples_selected):
+        self.logger.warning("------------------------------------\n")
+        self.logger.warning("Updating labeled and unlabeled datasets...")
+
+        unlabeled_dataset = self.pool_unlabelled_loader.dataset
+        labeled_dataset = self.bucket_labelled_loader.dataset
+        
+        # Obter os índices que NÃO foram selecionados para o pool não rotulado
+        remaining_indices = list(set(range(len(unlabeled_dataset))) - set(samples_selected))
+        
+        # Adicionar os índices selecionados ao conjunto rotulado
+        new_labeled_subset = Subset(unlabeled_dataset, samples_selected)
+        updated_labeled_dataset = labeled_dataset + new_labeled_subset
+        
+        # Criar um novo subset para os índices restantes no pool não rotulado
+        updated_unlabeled_dataset = Subset(unlabeled_dataset, remaining_indices)
+
+        # Atualizar os data loaders
+        self.bucket_labelled_loader = DataLoader(updated_labeled_dataset, batch_size=self.batch_size, shuffle=True)
+        self.pool_unlabelled_loader = DataLoader(updated_unlabeled_dataset, batch_size=self.batch_size, shuffle=True)
+
+        self.logger.warning(f"Updated labeled set size: {len(self.bucket_labelled_loader.dataset)}")
+        self.logger.warning(f"Updated unlabeled set size: {len(self.pool_unlabelled_loader.dataset)}")
+
+        for inputs, labels in self.pool_unlabelled_loader:
+                import matplotlib.pyplot as plt
+                import numpy as np
+                plt.imshow(np.transpose(inputs[0], (1, 2, 0)))
+                plt.title(f"Classe: {self.get_name_classes()[labels[0]]}")
+                plt.show()
+                exit()  
+        # Imprimir a frequência de cada classe no pool_unlabelled_loader
+        # self.print_class_frequencies(self.pool_unlabelled_loader, "Unlabeled Pool")
+
+        self.logger.warning("------------------------------------\n")
+
 
     def get_pool_unlabelled_loader(self):
         return self.pool_unlabelled_loader
     
     def get_bucket_labelled_loader(self):
         return self.bucket_labelled_loader
-
 
     def get_train_loader(self):
         return self.train_loader
