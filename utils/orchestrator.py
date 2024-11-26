@@ -3,7 +3,7 @@ from utils.dataset import DANINHAS_Hander, CIFAR10_Handler
 from utils.data import get_DANINHAS, get_CIFAR10
 
 from core.deep_learning import DeepLearning
-from core.daninhas_model import DaninhasModel
+from core.daninhas_model import DaninhasModelResNet50, DaninhasModelViT
 from core.cifar10_model import CIFAR10Model
 
 from core.query_strategies import RandomSampling, LeastConfidence, MarginSampling, EntropySampling, \
@@ -14,7 +14,7 @@ from core.query_strategies import RandomSampling, LeastConfidence, MarginSamplin
 params = {
         'DANINHAS':
             {'n_epoch': 10, 
-            'train_args':{'batch_size': 512, 'num_workers': 4},
+            'train_args':{'batch_size': 256, 'num_workers': 4},
             'test_args':{'batch_size': 512, 'num_workers': 4},
             'optimizer_args':{'lr': 0.05, 'momentum': 0.3}
             },
@@ -47,7 +47,7 @@ def get_dataset(name):
         
 def get_network_deep_learning(name, device):
     if name == 'DANINHAS':
-        return DeepLearning(DaninhasModel, params[name], device)
+        return DeepLearning(DaninhasModelResNet50, params[name], device)
     elif name == 'CIFAR10':
             return DeepLearning(CIFAR10Model, params[name], device)
     else:

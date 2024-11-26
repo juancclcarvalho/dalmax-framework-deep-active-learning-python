@@ -31,6 +31,11 @@ class Strategy:
         labeled_idxs, labeled_data = self.dataset.get_labeled_data()
         self.net.train(labeled_data)
 
+    def train_full(self):
+        print("Training FULL DATASET the DAL strategy")
+        labeled_idxs, labeled_data = self.dataset.get_train_data()
+        self.net.train(labeled_data)
+
     def predict(self, data):
         print("Predicting with the DAL strategy")
         preds = self.net.predict(data)

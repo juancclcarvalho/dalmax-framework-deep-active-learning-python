@@ -8,15 +8,18 @@ from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torchvision.models as models
-from torchvision.models import resnet18, ResNet18_Weights
+from torchvision.models import resnet50, ResNet50_Weights
+import torch
+import torch.nn as nn
+from torchvision.models import vit_b_16, ViT_B_16_Weights
 
-class DaninhasModel(nn.Module):
+class DaninhasModelResNet50(nn.Module):
     def __init__(self):
-        super(DaninhasModel, self).__init__()
+        super(DaninhasModelResNet50, self).__init__()
         
         # Carregar a ResNet-18 pré-treinada com os pesos da ImageNet
-        weights = ResNet18_Weights.IMAGENET1K_V1
-        resnet = resnet18(weights=weights)
+        weights = ResNet50_Weights.IMAGENET1K_V1
+        resnet = resnet50(weights=weights)
         
         # Remover a camada totalmente conectada final
         self.feature_extractor = nn.Sequential(*list(resnet.children())[:-1])  # Todas as camadas até o penúltimo bloco
@@ -42,6 +45,47 @@ class DaninhasModel(nn.Module):
         
         # Saída final para classificação
         x = self.classifier(features)
+        return x, e1
+
+    def get_embedding_dim(self):
+        return self.embedding_dim
+
+import torch
+import torch.nn as nn
+from torchvision.models import vit_b_16, ViT_B_16_Weights
+
+class DaninhasModelViT(nn.Module):
+    def __init__(self):
+        super(DaninhasModelViT, self).__init__()
+        
+        # Carregar o ViT-B/16 pré-treinado com os pesos da ImageNet
+        weights = ViT_B_16_Weights.IMAGENET1K_V1
+        vit = vit_b_16(weights=weights)
+        
+        # Extraímos o backbone sem a cabeça de classificação
+        self.feature_extractor = vit
+        
+        # A dimensão do embedding é dada pela saída da camada do encoder
+        self.hidden_dim = vit.heads.in_features  # Usando o número de entradas na cabeça final
+        
+        # Embedding layer para reduzir a dimensionalidade
+        self.embedding_dim = 50
+        self.embedding_layer = nn.Linear(self.hidden_dim, self.embedding_dim)
+        
+        # Camada final para classificação em 5 classes
+        self.classifier = nn.Linear(self.hidden_dim, 5)
+
+    def forward(self, x):
+        # O ViT já inclui o processamento para extração dos tokens
+        outputs = self.feature_extractor(x)
+        cls_token = outputs.last_hidden_state[:, 0]  # Pega o token de classificação (primeiro token)
+        
+        # Embedding: reduz para 50 dimensões
+        e1 = self.embedding_layer(cls_token)
+        e1 = torch.relu(e1)
+        
+        # Saída final para classificação
+        x = self.classifier(cls_token)
         return x, e1
 
     def get_embedding_dim(self):
