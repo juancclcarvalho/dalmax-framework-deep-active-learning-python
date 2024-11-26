@@ -1,37 +1,55 @@
 from torchvision import transforms
-from dataset.dataset import DaninhasDatasetHandler
-from dataset.data import get_DaninhasDataset
+from utils.dataset import DaninhasDatasetHandler, CIFAR10_Handler
+from utils.data import get_DaninhasDataset, get_CIFAR10
 
 from core.deep_learning import DeepLearning
 from core.daninhas_model import DaninhasModel
+from core.cifar10_model import CIFAR10Model
 
 from core.query_strategies import RandomSampling, LeastConfidence, MarginSampling, EntropySampling, \
                              LeastConfidenceDropout, MarginSamplingDropout, EntropySamplingDropout, \
                              KMeansSampling, KCenterGreedy, BALDDropout, \
                              AdversarialBIM, AdversarialDeepFool
 
-params = {'DaninhasDataset':
-              {'n_epoch': 10, 
-               'train_args':{'batch_size': 512, 'num_workers': 4},
-               'test_args':{'batch_size': 512, 'num_workers': 4},
-               'optimizer_args':{'lr': 0.05, 'momentum': 0.3}}
-          }
+params = {
+        'DaninhasDataset':
+            {'n_epoch': 10, 
+            'train_args':{'batch_size': 512, 'num_workers': 4},
+            'test_args':{'batch_size': 512, 'num_workers': 4},
+            'optimizer_args':{'lr': 0.05, 'momentum': 0.3}
+            },
+        
+        'CIFAR10':
+            {'n_epoch': 20, 
+            'train_args':{'batch_size': 64, 'num_workers': 1},
+            'test_args':{'batch_size': 1000, 'num_workers': 1},
+            'optimizer_args':{'lr': 0.05, 'momentum': 0.3}
+            }
+            
+        }
 
 def get_handler(name):
     if name == 'DaninhasDataset':
         return DaninhasDatasetHandler
+    
+    elif name == 'CIFAR10':
+        return CIFAR10_Handler
     else:
         raise NotImplementedError
 
 def get_dataset(name):
     if name == 'DaninhasDataset':
         return get_DaninhasDataset(get_handler(name), "DATA/daninhas_full/")
+    elif name == 'CIFAR10':
+        return get_CIFAR10(get_handler(name), "DATA/DATA_CIFAR10/")
     else:
         raise NotImplementedError
         
 def get_network_deep_learning(name, device):
     if name == 'DaninhasDataset':
         return DeepLearning(DaninhasModel, params[name], device)
+    elif name == 'CIFAR10':
+            return DeepLearning(CIFAR10Model, params[name], device)
     else:
         raise NotImplementedError
     
