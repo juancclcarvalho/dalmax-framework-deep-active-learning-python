@@ -1,7 +1,10 @@
 from torchvision import transforms
-from dataset import DaninhasDatasetHandler
-from data import get_DaninhasDataset
-from models_dl import Net, DaninhasModel
+from dataset.dataset import DaninhasDatasetHandler
+from dataset.data import get_DaninhasDataset
+
+from core.deep_learning import DeepLearning
+from core.daninhas_model import DaninhasModel
+
 from query_strategies import RandomSampling, LeastConfidence, MarginSampling, EntropySampling, \
                              LeastConfidenceDropout, MarginSamplingDropout, EntropySamplingDropout, \
                              KMeansSampling, KCenterGreedy, BALDDropout, \
@@ -26,9 +29,9 @@ def get_dataset(name):
     else:
         raise NotImplementedError
         
-def get_net(name, device):
+def get_network_deep_learning(name, device):
     if name == 'DaninhasDataset':
-        return Net(DaninhasModel, params[name], device)
+        return DeepLearning(DaninhasModel, params[name], device)
     else:
         raise NotImplementedError
     

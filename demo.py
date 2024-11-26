@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 import torch
-from build_env import get_dataset, get_net, get_strategy
+from utils.orchestrator import get_dataset, get_network_deep_learning, get_strategy
 from pprint import pprint
 
 parser = argparse.ArgumentParser()
@@ -39,7 +39,7 @@ device = torch.device("cuda" if use_cuda else "cpu")
 print(f"device: {device}")
 
 dataset = get_dataset(args.dataset_name)                   # load dataset
-net = get_net(args.dataset_name, device)                   # load network
+net = get_network_deep_learning(args.dataset_name, device)                   # load network
 strategy = get_strategy(args.strategy_name)(dataset, net)  # load strategy
 
 # start experiment
