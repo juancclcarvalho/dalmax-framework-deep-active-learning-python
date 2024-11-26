@@ -19,6 +19,7 @@ dados = {
     #'MODEL': {'data': [0.4, 0.54, 0.85]},
 }
 local_rounds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+local_rounds = local_rounds[:-3]
 
 # Dados de configuração
 dados_config = {
@@ -53,6 +54,9 @@ marcadores = ['o', '*', 's', 'D', '^', 'P', 'X']  # Marcadores possíveis
 cores = sns.color_palette("husl", len(dados))
 # Plotar os dados
 for i, (modelo, valores) in enumerate(dados.items()):
+    # Excluir os 3 ultimos valores
+    valores['data'] = valores['data'][:-3]
+
     marcador = marcadores[i % len(marcadores)]  # Reutilizar marcadores se necessário
     plt.plot(local_rounds, valores['data'], label=modelo, color=cores[i], marker=marcador, markersize=8, linestyle='-')
 # Configurações do gráfico
