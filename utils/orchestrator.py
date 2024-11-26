@@ -5,7 +5,7 @@ from dataset.data import get_DaninhasDataset
 from core.deep_learning import DeepLearning
 from core.daninhas_model import DaninhasModel
 
-from query_strategies import RandomSampling, LeastConfidence, MarginSampling, EntropySampling, \
+from core.query_strategies import RandomSampling, LeastConfidence, MarginSampling, EntropySampling, \
                              LeastConfidenceDropout, MarginSamplingDropout, EntropySamplingDropout, \
                              KMeansSampling, KCenterGreedy, BALDDropout, \
                              AdversarialBIM, AdversarialDeepFool
