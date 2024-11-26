@@ -3,7 +3,7 @@ from .strategy import Strategy
 from sklearn.cluster import KMeans
 
 class KMeansSampling(Strategy):
-    def __init__(self, dataset, net):
+    def __init__(self, dataset, net, logger):
         super(KMeansSampling, self).__init__(dataset, net)
 
     def query(self, n):

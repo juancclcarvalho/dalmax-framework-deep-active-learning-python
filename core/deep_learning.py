@@ -14,7 +14,18 @@ class DeepLearning:
         self.net = net
         self.params = params
         self.device = device
-        
+
+    def save_model(self, path):
+        torch.save(self.net, path)
+    
+    # TODO: FIX THIS
+    def load_model(self, path):
+        self.net = torch.load(path, map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+        self.net.eval()
+        self.clf = self.net().to(self.device)
+
+        return self.net
+
     def train(self, data):
         n_epoch = self.params['n_epoch']
         self.clf = self.net().to(self.device)

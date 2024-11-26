@@ -2,9 +2,9 @@
 DATA/*
 data/*
 
-local_assets/
-results/
-logs/
+local_assets/*
+results/*
+logs/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

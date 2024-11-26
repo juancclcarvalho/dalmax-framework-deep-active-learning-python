@@ -2,7 +2,7 @@ import numpy as np
 from .strategy import Strategy
 
 class MarginSamplingDropout(Strategy):
-    def __init__(self, dataset, net, n_drop=10):
+    def __init__(self, dataset, net, logger, n_drop=10):
         super(MarginSamplingDropout, self).__init__(dataset, net)
         self.n_drop = n_drop
 
