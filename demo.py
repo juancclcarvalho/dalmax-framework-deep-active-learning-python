@@ -48,10 +48,11 @@ dataset.initialize_labels(args.n_init_labeled)
 # round 0 accuracy
 print("Round 0")
 strategy.info()
-strategy.train_full()
+# strategy.train_full()
+strategy.train()
 preds = strategy.predict(dataset.get_test_data())
 print(f"Round 0 testing accuracy: {dataset.cal_test_acc(preds)}")
-exit()
+
 for rd in range(1, args.n_round+1):
     print("\n==========================================================================>")
     print(f"Round {rd}")
