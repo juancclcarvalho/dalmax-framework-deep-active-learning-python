@@ -38,6 +38,10 @@ print(f"use_cuda: {use_cuda}")
 device = torch.device("cuda" if use_cuda else "cpu")
 print(f"device: {device}")
 
+## 
+all_acc = []
+all_rounds = []
+
 dataset = get_dataset(args.dataset_name)                   # load dataset
 net = get_network_deep_learning(args.dataset_name, device)                   # load network
 strategy = get_strategy(args.strategy_name)(dataset, net)  # load strategy
@@ -51,7 +55,11 @@ strategy.info()
 # strategy.train_full()
 strategy.train()
 preds = strategy.predict(dataset.get_test_data())
-print(f"Round 0 testing accuracy: {dataset.cal_test_acc(preds)}")
+acc = dataset.cal_test_acc(preds)
+print(f"Round 0 testing accuracy: {acc}")
+
+all_acc.append(acc)
+all_rounds.append(0)
 
 for rd in range(1, args.n_round+1):
     print("\n==========================================================================>")
@@ -70,4 +78,18 @@ for rd in range(1, args.n_round+1):
 
     # calculate accuracy
     preds = strategy.predict(dataset.get_test_data())
-    print(f"Round {rd} testing accuracy: {dataset.cal_test_acc(preds)}")
+    acc = dataset.cal_test_acc(preds)
+    print(f"Round {rd} testing accuracy: {acc}")
+
+    all_acc.append(acc)
+    all_rounds.append(rd)
+
+print("\n==========================================================================>")
+# Plotar um grafico de acc x rounds
+import matplotlib.pyplot as plt
+plt.plot(all_rounds, all_acc)
+plt.xlabel("Rounds")
+plt.ylabel("Accuracy")
+plt.title(f"{args.strategy_name} - {args.dataset_name}")
+
+plt.show()

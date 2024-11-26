@@ -1,7 +1,8 @@
-import numpy as np
 import os
+import numpy as np
 from PIL import Image
 import torch
+import torch.nn.functional as F
 from torchvision import datasets
 class Data:
     def __init__(self, X_train, Y_train, X_test, Y_test, handler):
