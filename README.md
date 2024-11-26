@@ -5,25 +5,22 @@ Repository of resources used in my doctoral studies in the area of ​​Deep Ac
 
 ## Methodology Overview
 The Framework to Deep Active Learning Approaches for Maximal Information Gain (DalMax) is a framework that aims to select the most informative samples for training a deep learning model. The DalMax framework is based on heuristic strategies that select the samples that maximize the information gain of the model. The DalMax framework is composed of this heuristic strategies:
-- **Uncertainty Sampling**: Calculate the entropy or confidence margin to select samples.
-- **Diversity Sampling**: Use clustering (e.g., K-means) to select samples that represent the diversity of the dataset.
-- **Query by Committee (QBC)**: Train multiple models and select the samples where there is the greatest disagreement between them.
-- **Core-Set Selection**: Use optimization methods such as K-Center to select subsets that effectively cover the data space.
-- **Adversarial Active Learning**: Generate adversarial samples to identify model weaknesses.
-- **Reinforcement Learning for Active Learning**: Apply RL to learn sample selection strategies. This is not implemented in this repository.
-- **Expected Model Change**: Choose samples that, when labeled, are expected to cause the greatest change in the model.
-- **Bayesian Active Learning**: Use Bayesian methods to model uncertainty and select samples that maximize information gain.
+  
+- **Random Sampling**: Select samples randomly.
+- **Least Confidence**: Select samples where the model is least confident[1].
+- **Margin Sampling**: Select samples where the margin between the two most likely classes is smallest[2].
+- **Entropy Sampling**: Select samples where the entropy of the prediction is highest[3].
+- **Uncertainty Sampling with Dropout Estimation**: Select samples where the model is most uncertain. This strategy uses dropout to estimate the uncertainty of the model[4].
+- **Bayesian Active Learning Disagreement**: Select samples where the model is most uncertain. This strategy uses Bayesian methods to estimate the uncertainty of the model[4].
+- **Cluster-Based Selection**: Select samples that are most representative of the clusters[5].
+- **Adversarial Margin**: Select samples where the adversarial margin is smallest[6].
 
+- 
 ## Dependencies
 This project depends on the following libraries:
-- Python 3.9
-- TensorFlow 2.11.0
-- CUDA 11.7
-- Numpy
-- Scikit-learn
-- Matplotlib
-- Seaborn
-
+- Python==3.9
+- CUDA==12.4
+- Pytorch==v2.5.0
 
 ## Environment Setup
 To install the necessary dependencies, run the following command:
@@ -39,23 +36,6 @@ To install the necessary dependencies, run the following command:
         source tf/bin/activate   
     ```
 
-### Install TensorFlow
-#### For GPU users
-- Install CUDA
-    To install CUDA, follow the instructions on the NVIDIA website: [https://developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads). Select the version compatible with your GPU and operating system. We recommend using CUDA 11.7.
-    IF DONT HAVE GPU, YOU CAN USE THE CPU VERSION. SEE BELOW.
-```bash
-    pip install tensorflow[and-cuda]
-```
-- Testing TensorFlow with GPU
-    ```python
-        # Verify the installation:
-        python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
-    ```
-#### For CPU users
-```bash
-    pip install tensorflow
-```
 #### Dependencies
  - Install the dependencies on `requirements.txt`.
     ```bash
@@ -63,11 +43,19 @@ To install the necessary dependencies, run the following command:
     ```
  - Or install the dependencies manually.
     ```bash
-        pip install numpy
-        pip install scikit-learn
-        pip install matplotlib
-        pip install seaborn
+        matplotlib==3.9.2
+        numpy==2.1.3
+        Pillow==11.0.0
+        scikit_learn==1.5.2
+        torch==2.5.0
+        torchvision==0.20.0
+        tqdm==4.67.1
+
     ```
+    - Or Conda install the dependencies manually.
+        ```bash
+            conda install pytorch==2.5.0 torchvision==0.20.0 torchaudio==2.5.0 pytorch-cuda=12.4 -c pytorch -c nvidia
+        ```
 
 ## Usage
 
@@ -115,67 +103,24 @@ DATA/
 ### Training Deep Active Learning Models
 To train the models, run the following command:
 ```bash
-    python tools/train_al.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type uncertainty_sampling --batch_size 10 --iterations 5 --test_size 0.9  --use_gpu 0 --mult_gpu True
+    python demo.py \
+        --n_round 10 \
+        --n_query 1000 \
+        --n_init_labeled 10000 \
+        --dataset_name DaninhasDataset \
+        --strategy_name RandomSampling \
+        --seed 1
 ```
+
 #### Parameters
-- `dir_train`: Path to the training dataset.
-- `dir_test`: Path to the test dataset.
-- `dir_results`: Path to save the results.
-- `type`: Active learning strategy. Options: `uncertainty_sampling`, `query_by_committee`, `diversity_sampling`, `core_set_selection`, `adversarial_sampling`, `reinforcement_learning_sampling`, `expected_model_change`, `bayesian_sampling`.
-- `batch_size`: Number of samples to be selected in each iteration.
-- `iterations`: Number of iterations.
-- `test_size`: Proportion of the test dataset.
-- `mult_gpu`: Use multiple GPUs. Optional. If `True`, the model is trained with multiple GPUs. If not informed, the model is trained with a single GPU.
-- `use_gpu`: Use GPU. Optional. If `0`, the model is trained first with the CPU. If `1`, the model is trained with the second GPU. If not informed, the model is trained with the first GPU.
-- `only_train`: Train the model only. Optional. If `True`, the model is trained only. If not informed, the process executes the active learning strategy and trains the model.
-- `img_size`: Image size. Optional. If not informed, the image size is 32x32. Example --img_size 64.
-
-
-#### Results
-The results are saved in the `results` folder. The following files are generated:
-
-- `selected_images/`: Folder with the selected images in each iteration per class.
-- `confusion_matrix.pdf`: Confusion matrix of Deep Active Learning model. This is valid only for the active learning strategies that use the test dataset.
-- `final_accuracy.txt`: Final accuracy of the Deep Active Learning model. This is valid only for the active learning strategies that use the test dataset.
-- `infos.txt`: Information about the training process.
-- `query_by_committee_al_model.h5`: Deep Active Learning model. This is valid only for the active learning strategies that use the test dataset.
-- `training_accuracy_plot.pdf`: Training accuracy plot.
-- `training_loss_plot.pdf`: Training loss plot.
-
-### Training Deep Learning Models
-To train the models, you can select on RANDOM or ACTIVE mode. In the RANDOM mode, the model is trained with random samples. In the ACTIVE mode, the model is trained with the samples selected by the active learning strategy. The following command shows how to train the model in the RANDOM mode:
-
-#### Random Mode
-```bash
-    python tools/train.py --dir_train YOUR_DATASET/train/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type random --epochs 10 --mult_gpu True --use_gpu 0
-```
-
-#### Active Mode
-```bash
-    # Example of training with the selected images by the core set selection strategy
-    python tools/train.py --dir_train YOUR_RESULTS_FOLDER/active_learning/core_set_selection/selected_images/ --dir_test YOUR_DATASET/test/ --dir_results results/ --type train --epochs 10 --mult_gpu True
-```
-
-Parameters:
-- `dir_train`: Path to the training dataset.
-- `dir_test`: Path to the test dataset.
-- `dir_results`: Path to save the results.
-- `type`: Training mode. Options: `random`, `train`.
-- `epochs`: Number of epochs.
-- `mult_gpu`: Use multiple GPUs. Optional. If `True`, the model is trained with multiple GPUs. If not informed, the model is trained with a single GPU.
-- `use_gpu`: Use GPU. Optional. If `0`, the model is trained first with the CPU. If `1`, the model is trained with the second GPU. If not informed, the model is trained with the first GPU.
+- `n_round`: Number of iterations.
+- `n_query`: Number of samples to be selected in each iteration.
+- `n_init_labeled`: Number of labeled samples in the initial training.
+- `dataset_name`: Name of the dataset. Options: `CIFAR10`, `DaninhasDataset`.
+- `strategy_name`: Name of the active learning strategy. Options: `RandomSampling`, `LeastConfidence`, `MarginSampling`, `EntropySampling`, `UncertaintySamplingWithDropoutEstimation`, `BayesianActiveLearningDisagreement`, `ClusterBasedSelection`, `AdversarialMargin`.
 - `seed`: Seed for random number generation. Optional. If not informed, the seed is randomly generated.
 - `img_size`: Image size. Optional. If not informed, the image size is 32x32. Example --img_size 64.
 
-### Testing Deep Learning Models
-To test the models, run the following command:
-```bash
-    python tools/test.py --dir_test YOUR_DATASET/test/ --dir_model results/YOUR_model.h5
-```
-Parameters:
-- `dir_test`: Path to the test dataset.
-- `dir_model`: Path to the model.
-  
 ## License
 
 DalMax is under the MIT License. See the [LICENSE](LICENSE) file for more details.
@@ -185,3 +130,20 @@ DalMax is under the MIT License. See the [LICENSE](LICENSE) file for more detail
 - Author: Mário de Araújo Carvalho
 - Email: mariodearaujocarvalho@gmail.com
 - Project: [https://github.com/MarioCarvalhoBr/dalmax-framework-deep-active-learning-python](https://github.com/MarioCarvalhoBr/dalmax-framework-deep-active-learning-python)
+
+
+## Reference
+
+[1] A Sequential Algorithm for Training Text Classifiers, SIGIR, 1994
+
+[2] Active Hidden Markov Models for Information Extraction, IDA, 2001
+
+[3] Active learning literature survey. University of Wisconsin-Madison Department of Computer Sciences, 2009
+
+[4] Deep Bayesian Active Learning with Image Data, ICML, 2017
+
+[5] Active Learning for Convolutional Neural Networks: A Core-Set Approach, ICLR, 2018
+
+[6] Adversarial Active Learning for Deep Networks: a Margin Based Approach, arXiv, 2018
+
+
