@@ -1,4 +1,5 @@
 import os
+import json
 import time
 import argparse
 import numpy as np
@@ -112,6 +113,28 @@ def main(args):
 
     # Save the model
     strategy.save_model(dir_results)
+
+    ## SAVE DATA in JSON
+    # Dados de configuração
+    dados_config_results = {
+        'dataset_name': args.dataset_name,
+        'strategy_name': args.strategy_name,
+
+        'n_init_labeled': args.n_init_labeled,
+        'n_query': args.n_query,
+        'n_round': args.n_round,
+        'seed': args.seed,
+        
+        'data': all_acc,
+        'rounds': all_rounds,
+    }
+
+    # Salvar dados em um arquivo JSON
+    json_path = os.path.join(dir_results, "results.json")
+    with open(json_path, "w") as json_file:
+        json.dump(dados_config_results, json_file, indent=4)
+
+    print(f"Dados salvos em {json_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
