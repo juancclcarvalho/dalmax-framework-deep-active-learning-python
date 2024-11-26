@@ -3,7 +3,7 @@ from .strategy import Strategy
 
 class MarginSampling(Strategy):
     def __init__(self, dataset, net, logger):
-        super(MarginSampling, self).__init__(dataset, net)
+        super(MarginSampling, self).__init__(dataset, net, logger)
 
     def query(self, n):
         unlabeled_idxs, unlabeled_data = self.dataset.get_unlabeled_data()

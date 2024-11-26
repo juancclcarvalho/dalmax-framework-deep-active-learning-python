@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 class AdversarialBIM(Strategy):
     def __init__(self, dataset, net, logger, eps=0.05):
-        super(AdversarialBIM, self).__init__(dataset, net)
+        super(AdversarialBIM, self).__init__(dataset, net, logger)
         self.eps = eps
 
     def cal_dis(self, x):

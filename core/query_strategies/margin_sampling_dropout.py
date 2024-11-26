@@ -3,7 +3,7 @@ from .strategy import Strategy
 
 class MarginSamplingDropout(Strategy):
     def __init__(self, dataset, net, logger, n_drop=10):
-        super(MarginSamplingDropout, self).__init__(dataset, net)
+        super(MarginSamplingDropout, self).__init__(dataset, net, logger)
         self.n_drop = n_drop
 
     def query(self, n):

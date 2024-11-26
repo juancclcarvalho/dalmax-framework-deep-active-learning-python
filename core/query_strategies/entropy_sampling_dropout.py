@@ -4,7 +4,7 @@ from .strategy import Strategy
 
 class EntropySamplingDropout(Strategy):
     def __init__(self, dataset, net, logger, n_drop=10):
-        super(EntropySamplingDropout, self).__init__(dataset, net)
+        super(EntropySamplingDropout, self).__init__(dataset, net, logger)
         self.n_drop = n_drop
 
     def query(self, n):

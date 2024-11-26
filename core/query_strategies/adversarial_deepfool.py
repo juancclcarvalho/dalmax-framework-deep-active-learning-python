@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 class AdversarialDeepFool(Strategy):
     def __init__(self, dataset, net, logger, max_iter=50):
-        super(AdversarialDeepFool, self).__init__(dataset, net)
+        super(AdversarialDeepFool, self).__init__(dataset, net, logger)
         self.max_iter = max_iter
 
     def cal_dis(self, x):
