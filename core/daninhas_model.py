@@ -8,13 +8,15 @@ from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torchvision.models as models
+from torchvision.models import resnet18, ResNet18_Weights
 
 class DaninhasModel(nn.Module):
     def __init__(self):
         super(DaninhasModel, self).__init__()
         
-        # Carregar a ResNet-50 pré-treinada
-        resnet = models.resnet18(pretrained=True)
+        # Carregar a ResNet-18 pré-treinada com os pesos da ImageNet
+        weights = ResNet18_Weights.IMAGENET1K_V1
+        resnet = resnet18(weights=weights)
         
         # Remover a camada totalmente conectada final
         self.feature_extractor = nn.Sequential(*list(resnet.children())[:-1])  # Todas as camadas até o penúltimo bloco

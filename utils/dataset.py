@@ -2,7 +2,7 @@ from torchvision import transforms
 from torch.utils.data import Dataset
 from PIL import Image
 
-class DaninhasDatasetHandler(Dataset):
+class DANINHAS_Hander(Dataset):
     def __init__(self, X, Y):
         self.X = X
         self.Y = Y

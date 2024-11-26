@@ -1,6 +1,6 @@
 from torchvision import transforms
-from utils.dataset import DaninhasDatasetHandler, CIFAR10_Handler
-from utils.data import get_DaninhasDataset, get_CIFAR10
+from utils.dataset import DANINHAS_Hander, CIFAR10_Handler
+from utils.data import get_DANINHAS, get_CIFAR10
 
 from core.deep_learning import DeepLearning
 from core.daninhas_model import DaninhasModel
@@ -12,7 +12,7 @@ from core.query_strategies import RandomSampling, LeastConfidence, MarginSamplin
                              AdversarialBIM, AdversarialDeepFool
 
 params = {
-        'DaninhasDataset':
+        'DANINHAS':
             {'n_epoch': 10, 
             'train_args':{'batch_size': 512, 'num_workers': 4},
             'test_args':{'batch_size': 512, 'num_workers': 4},
@@ -29,8 +29,8 @@ params = {
         }
 
 def get_handler(name):
-    if name == 'DaninhasDataset':
-        return DaninhasDatasetHandler
+    if name == 'DANINHAS':
+        return DANINHAS_Hander
     
     elif name == 'CIFAR10':
         return CIFAR10_Handler
@@ -38,15 +38,15 @@ def get_handler(name):
         raise NotImplementedError
 
 def get_dataset(name):
-    if name == 'DaninhasDataset':
-        return get_DaninhasDataset(get_handler(name), "DATA/daninhas_full/")
+    if name == 'DANINHAS':
+        return get_DANINHAS(get_handler(name), "DATA/daninhas_full/")
     elif name == 'CIFAR10':
         return get_CIFAR10(get_handler(name), "DATA/DATA_CIFAR10/")
     else:
         raise NotImplementedError
         
 def get_network_deep_learning(name, device):
-    if name == 'DaninhasDataset':
+    if name == 'DANINHAS':
         return DeepLearning(DaninhasModel, params[name], device)
     elif name == 'CIFAR10':
             return DeepLearning(CIFAR10Model, params[name], device)

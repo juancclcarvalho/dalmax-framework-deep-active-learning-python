@@ -45,7 +45,10 @@ class DeepLearning:
     def predict(self, data):
         self.clf.eval()
         # preds = torch.zeros(len(data), dtype=data.Y.dtype)
-        preds = torch.zeros(len(data), dtype=torch.tensor(data.Y).dtype)
+        if not isinstance(data.Y, torch.Tensor):
+            data.Y = torch.tensor(data.Y)
+        preds = torch.zeros(len(data), dtype=data.Y.dtype)
+
 
         loader = DataLoader(data, shuffle=False, **self.params['test_args'])
         with torch.no_grad():

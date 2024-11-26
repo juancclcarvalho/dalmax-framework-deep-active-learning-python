@@ -37,10 +37,14 @@ class Data:
         return self.handler(self.X_test, self.Y_test)
     
     def cal_test_acc(self, preds):
-        # return 1.0 * (self.Y_test==preds).sum().item() / self.n_test
-        # Garantir que ambos sejam tensores PyTorch
-        self.Y_test = torch.tensor(self.Y_test, dtype=torch.int64)
-        preds = preds.to(torch.int64)  # Certifique-se de que os tipos combinam
+        # Converter self.Y_test para tensor caso seja um array NumPy
+        if isinstance(self.Y_test, np.ndarray):
+            self.Y_test = torch.from_numpy(self.Y_test).to(torch.int64)
+        else:
+            self.Y_test = self.Y_test.to(torch.int64)
+        
+        # Converter preds para tensor caso seja um array NumPy
+        preds = torch.from_numpy(preds).to(torch.int64) if isinstance(preds, np.ndarray) else preds.to(torch.int64)
 
         # Calcular a precisão
         return 1.0 * (self.Y_test == preds).sum().item() / self.n_test
@@ -62,7 +66,7 @@ class Data:
         return len(handler)
 
 
-def get_DaninhasDataset(handler, data_dir, img_size=128):
+def get_DANINHAS(handler, data_dir, img_size=128):
     """
     Carrega o dataset estruturado em pastas de classes para treino e teste.
     
@@ -74,7 +78,7 @@ def get_DaninhasDataset(handler, data_dir, img_size=128):
     Returns:
         Uma instância da classe `Data` configurada com os dados carregados.
     """
-    print("Loading DaninhasDataset...")
+    print("Loading DANINHAS...")
     # Função para carregar imagens e rótulos
     def load_images_and_labels(path, classes, class_to_idx):
         images, labels = [], []

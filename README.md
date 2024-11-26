@@ -107,7 +107,7 @@ To train the models, run the following command:
         --n_round 10 \
         --n_query 1000 \
         --n_init_labeled 10000 \
-        --dataset_name DaninhasDataset \
+        --dataset_name DANINHAS \
         --strategy_name RandomSampling \
         --seed 1
 ```
@@ -116,7 +116,7 @@ To train the models, run the following command:
 - `n_round`: Number of iterations.
 - `n_query`: Number of samples to be selected in each iteration.
 - `n_init_labeled`: Number of labeled samples in the initial training.
-- `dataset_name`: Name of the dataset. Options: `CIFAR10`, `DaninhasDataset`.
+- `dataset_name`: Name of the dataset. Options: `CIFAR10`, `DANINHAS`.
 - `strategy_name`: Name of the active learning strategy. Options: `RandomSampling`, `LeastConfidence`, `MarginSampling`, `EntropySampling`, `UncertaintySamplingWithDropoutEstimation`, `BayesianActiveLearningDisagreement`, `ClusterBasedSelection`, `AdversarialMargin`.
 - `seed`: Seed for random number generation. Optional. If not informed, the seed is randomly generated.
 - `img_size`: Image size. Optional. If not informed, the image size is 32x32. Example --img_size 64.
