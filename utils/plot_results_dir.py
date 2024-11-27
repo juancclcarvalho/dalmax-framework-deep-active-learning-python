@@ -16,52 +16,8 @@ dir_input = args.dir_input
 # Listar todas as pastas de dir_input
 folders = os.listdir(dir_input)
 
-print(folders)
-
-"""
-# Cada folder tem um arquivo JSON com os dados: results.json
-Esse arquivo tem a seguinte estrutura:
-{
-    "dataset_name": "DANINHAS",
-    "strategy_name": "RandomSampling",
-    "n_init_labeled": 100,
-    "n_query": 50,
-    "n_round": 10,
-    "seed": 1,
-    "data": [
-        0.5223171889838556,
-        0.5180436847103513,
-        0.6011396011396012,
-        0.19610636277302945,
-        0.6471984805318138,
-        0.26495726495726496,
-        0.7188983855650523,
-        0.6424501424501424,
-        0.7103513770180437,
-        0.7117758784425451,
-        0.6429249762583096
-    ],
-    "rounds": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10
-    ]
-}
-
-# Monte um dicionário com os dados:
-dados = {
-    'RandomSampling': {'data': []},
-    'MarginSampling': {'data': []},
-}
-"""
+print(f"Pasta de entrada: {dir_input}")
+print(f"Diretórios: {folders}")
 
 dados = {}
 dados_config = {}
