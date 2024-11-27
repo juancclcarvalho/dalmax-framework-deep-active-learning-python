@@ -56,10 +56,13 @@ def main(args):
     strategy.info()
     # strategy.train_full()
     strategy.train()
+    
     preds = strategy.predict(dataset.get_test_data())
     acc = dataset.cal_test_acc(preds)
+    
     logger.warning(f"Round 0 testing accuracy: {acc}")
-
+    # exit()
+    
     all_acc.append(acc)
     all_rounds.append(0)
 
@@ -138,7 +141,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_results', type=str, default='results/new_dalmax_train_10_epochs/', help='Results directory')
+    parser.add_argument('--dir_results', type=str, default='results/new_dalmax_train_10_epochs_50_n_query/', help='Results directory')
 
     parser.add_argument('--seed', type=int, default=1, help="random seed")
     parser.add_argument('--n_init_labeled', type=int, default=100, help="number of init labeled samples")

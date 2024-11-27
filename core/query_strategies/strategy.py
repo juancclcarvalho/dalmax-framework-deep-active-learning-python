@@ -21,7 +21,7 @@ class Strategy:
 
     def info(self):
         self.logger.warning("-------------------------------------------------------------------")
-        self.logger.warning(f"Size of pool: {self.dataset.get_size_pool_unlabeled()}")
+        self.logger.warning(f"Size of unlabeled pool: {self.dataset.get_size_pool_unlabeled()}")
         self.logger.warning(f"Size of labeled pool: {self.dataset.get_size_bucket_labeled()}")
         self.logger.warning(f"Size of training data: {self.dataset.get_size_train_data()}")
         self.logger.warning(f"Size of testing data: {self.dataset.get_size_test_data()}")
