@@ -74,7 +74,10 @@ for i, (modelo, valores) in enumerate(dados.items()):
     # valores['data'] = valores['data'][:-2]
 
     marcador = marcadores[i % len(marcadores)]  # Reutilizar marcadores se necessário
-    plt.plot(local_rounds, valores['data'], label=modelo, color=cores[i], marker=marcador, markersize=8, linestyle='-')
+    if modelo == 'RandomSampling':
+        plt.plot(local_rounds, valores['data'], label=modelo, color=cores[i], marker=marcador, markersize=8, linestyle='-')
+    else:
+        plt.plot(local_rounds, valores['data'], label=modelo, color=cores[i])
 # Configurações do gráfico
 plt.title("Model comparison", fontsize=14)
 plt.xlabel("Rounds", fontsize=12)

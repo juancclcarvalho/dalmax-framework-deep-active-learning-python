@@ -36,7 +36,7 @@ def balanced_files(dir_path, output_dir):
         arquivos = [arquivo for arquivo in arquivos if arquivo.endswith('.jpg')]
 
         # Seleciona 150 arquivos aleatórios
-        arquivos = random.sample(arquivos, min_files)
+        # arquivos = random.sample(arquivos, min_files)
         # MAke new folder 
         new_folder = os.path.join(output_dir, pasta)
         if not os.path.exists(output_dir + pasta):

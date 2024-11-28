@@ -22,13 +22,15 @@ class DeepLearning:
     def load_model(self, path):
         self.net = torch.load(path, map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
         self.net.eval()
-        self.clf = self.net().to(self.device)
+        n_classes = self.params['n_classes']    
+        self.clf = self.net(n_classes).to(self.device)
 
         return self.net
 
     def train(self, data):
         n_epoch = self.params['n_epoch']
-        self.clf = self.net().to(self.device)
+        n_classes = self.params['n_classes']    
+        self.clf = self.net(n_classes).to(self.device)
         self.clf.train()
         optimizer = optim.SGD(self.clf.parameters(), **self.params['optimizer_args'])
 
@@ -82,7 +84,8 @@ class DeepLearning:
                 probs[idxs] = prob.cpu()
         return probs
     
-    def predict_prob_dropout(self, data, n_drop=5):
+    def predict_prob_dropout(self, data, n_drop):
+        n_drop = self.params['n_drop']
         print("predict_prob_dropout with n_drop", n_drop)
         self.clf.train()
         probs = torch.zeros([len(data), len(np.unique(data.Y))])
@@ -97,7 +100,8 @@ class DeepLearning:
         probs /= n_drop
         return probs
     
-    def predict_prob_dropout_split(self, data, n_drop=5):
+    def predict_prob_dropout_split(self, data, n_drop):
+        n_drop = self.params['n_drop']
         print("predict_prob_dropout_split with n_drop", n_drop)
         self.clf.train()
         probs = torch.zeros([n_drop, len(data), len(np.unique(data.Y))])
