@@ -10,13 +10,14 @@ import torch.nn as nn
 import torchvision.models as models
 
 class CIFAR10Model(nn.Module):
-    def __init__(self):
+    def __init__(self, n_classes):
         super(CIFAR10Model, self).__init__()
+        self.n_classes = n_classes
         self.conv1 = nn.Conv2d(3, 32, kernel_size=5)
         self.conv2 = nn.Conv2d(32, 32, kernel_size=5)
         self.conv3 = nn.Conv2d(32, 64, kernel_size=5)
         self.fc1 = nn.Linear(1024, 50)
-        self.fc2 = nn.Linear(50, 10)
+        self.fc2 = nn.Linear(50, n_classes)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
