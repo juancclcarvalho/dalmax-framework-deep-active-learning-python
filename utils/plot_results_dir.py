@@ -36,7 +36,7 @@ for folder in folders:
         dados_config = json.load(json_file)
 
     # Adicionar ao dicionário de dados
-    dados[dados_config['strategy_name']] = {'data': dados_config['data']}
+    dados[dados_config['strategy_name']] = {'all_acc': dados_config['all_acc']}
 
     # Adicionar os rounds
     local_rounds = dados_config['rounds']
@@ -74,9 +74,9 @@ for i, (modelo, valores) in enumerate(dados.items()):
 
     marcador = marcadores[i % len(marcadores)]  # Reutilizar marcadores se necessário
     if modelo == 'RandomSampling':
-        plt.plot(local_rounds, valores['data'], label=modelo, color=cores[i], marker=marcador, markersize=8, linestyle='-')
+        plt.plot(local_rounds, valores['all_acc'], label=modelo, color=cores[i], marker=marcador, markersize=8, linestyle='-')
     else:
-        plt.plot(local_rounds, valores['data'], label=modelo, color=cores[i])
+        plt.plot(local_rounds, valores['all_acc'], label=modelo, color=cores[i])
 # Configurações do gráfico
 plt.title("Model comparison", fontsize=14)
 plt.xlabel("Rounds", fontsize=12)
