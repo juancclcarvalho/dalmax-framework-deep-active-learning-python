@@ -1,15 +1,11 @@
-class Foo:
-    def __init__(self):
-        self.bar = 42
+import os
+from pathlib import Path
 
-    def get_bar(self):
-        return self.bar
-
-    def set_bar(self, value):
-        self.bar = value
-
-foo = Foo()
-print(foo.get_bar())
-
-foo2 = Foo
-print(foo2.get_bar(foo2))
+'''
+eu tenho um caminho de pasta: path/folder1
+Eu quero retornar apenas o folder1. Porem, se eu uso o os.path e uso o base name funciona. Mas nao funciona no caso que 
+tem uma barra no final. Entao, eu preciso retornar exatamente o nome da pasta, sem a barra no final.
+'''
+path = "path/folder1"
+print(os.path.basename(path))
+print(os.path.basename(path.rstrip("/")))

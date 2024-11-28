@@ -1,64 +1,46 @@
-from torchvision import transforms
 from utils.dataset import DANINHAS_Hander, CIFAR10_Handler
-from utils.data import get_DANINHAS, get_CIFAR10
+from utils.data import get_DANINHAS, get_CIFAR10, get_CIFAR10_Download
 
 from core.deep_learning import DeepLearning
-from core.daninhas_model import DaninhasModelResNet50, DaninhasModelVitB16
+from core.daninhas_model import DaninhasModelResNet50
 from core.cifar10_model import CIFAR10Model
 
 from core.query_strategies import RandomSampling, LeastConfidence, MarginSampling, EntropySampling, \
                              LeastConfidenceDropout, MarginSamplingDropout, EntropySamplingDropout, \
                              KMeansSampling, KCenterGreedy, BALDDropout, \
-                             AdversarialBIM, AdversarialDeepFool
+                          AdversarialBIM, AdversarialDeepFool
 
-params = {
-        'DANINHAS':
-            {'n_epoch': 10,
-            'n_drop': 5,
-            'n_classes': 5,
-            'train_args':{'batch_size': 256, 'num_workers': 4},
-            'test_args':{'batch_size': 256, 'num_workers': 4},
-            'optimizer_args':{'lr': 0.05, 'momentum': 0.3}
-            },
-        
-        'CIFAR10':
-            {'n_epoch': 20, 
-            'n_drop': 10,
-            'n_classes': 10,
-            'train_args':{'batch_size': 64, 'num_workers': 1},
-            'test_args':{'batch_size': 1000, 'num_workers': 1},
-            'optimizer_args':{'lr': 0.05, 'momentum': 0.3}
-            }
-            
-        }
-
+# CONFIGURE YOUR HANDLER HERE AND ADD NEW HANDLERS TO THE get_handler FUNCTION
 def get_handler(name):
     if name == 'DANINHAS':
         return DANINHAS_Hander
-    
     elif name == 'CIFAR10':
+        return CIFAR10_Handler
+    elif name == 'CIFAR10Download':
         return CIFAR10_Handler
     else:
         raise NotImplementedError
 
-def get_dataset(name):
+# CONFIGURE YOUR DATASET HERE AND ADD NEW DATASETS TO THE get_dataset FUNCTION
+def get_dataset(name, params):
+    data_dir = params[name]['data_dir']
     if name == 'DANINHAS':
-        return get_DANINHAS(get_handler(name), "DATA/daninhas_balanceado/")
+        return get_DANINHAS(handler=get_handler(name), data_dir=data_dir)
     elif name == 'CIFAR10':
-        return get_CIFAR10(get_handler(name), "DATA/DATA_CIFAR10/")
+        return get_CIFAR10(handler=get_handler(name), data_dir=data_dir)
+    elif name == 'CIFAR10Download':
+        return get_CIFAR10_Download(handler=get_handler(name))
     else:
         raise NotImplementedError
-        
-def get_network_deep_learning(name, device):
+
+# CONFIGURE YOUR DEEP LEARNING MODEL HERE AND ADD NEW MODELS TO THE get_network_deep_learning FUNCTION
+def get_network_deep_learning(name, device, params):
     if name == 'DANINHAS':
         return DeepLearning(DaninhasModelResNet50, params[name], device)
     elif name == 'CIFAR10':
             return DeepLearning(CIFAR10Model, params[name], device)
     else:
         raise NotImplementedError
-    
-def get_params(name):
-    return params[name]
 
 def get_strategy(name):
     if name == "RandomSampling":

@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import torch
 from utils.orchestrator import get_dataset, get_network_deep_learning, get_strategy
 
-
 # My looger
 from utils.LOGGER import get_logger, get_path_logger
 
@@ -19,13 +18,25 @@ path_logger = get_path_logger()
 def main(args):
     # Train model with PyTorch
     logger.warning(f"DalMax - Training the model with PyTorch...")
+    logger.warning(vars(args))
+
+    # SETUP HYPERPARAMETERS
+    params = None
+    with open(args.params_json, "r") as f:
+        params = json.load(f)
+
+    n_epoch = params[args.dataset_name]['n_epoch']
+    data_dir = params[args.dataset_name]['data_dir']
+    data_dir_dataset = os.path.basename(data_dir.rstrip("/"))
 
     # Create results directory
-    dir_results = args.dir_results + f"{args.n_query}_n_query/{args.strategy_name}/"
+    if args.dir_results[-1] != '/':
+        args.dir_results += '/'
+    args.dir_results += f'{data_dir_dataset}/SEED_{args.seed}/NQ_{args.n_query}_NIL_{args.n_init_labeled}_NR_{args.n_round}_NE_{n_epoch}/'
+    dir_results = args.dir_results + f"{args.strategy_name}/"    
+    logger.warning(f"Results directory: {dir_results}")
     if not os.path.exists(dir_results):
         os.makedirs(dir_results)
-
-    logger.warning(vars(args))
 
     # fix random seed
     np.random.seed(args.seed)
@@ -38,14 +49,13 @@ def main(args):
     device = torch.device("cuda" if use_cuda else "cpu")
     logger.warning(f"device: {device}")
 
-    ## 
+    ## List to store accuracies and rounds
     all_acc = []
     all_rounds = []
 
-    dataset = get_dataset(args.dataset_name)                   # load dataset
-    net = get_network_deep_learning(args.dataset_name, device)                   # load network
-    strategy = get_strategy(args.strategy_name)(dataset, net, logger)  # load strategy
-
+    dataset = get_dataset(args.dataset_name, params)
+    net = get_network_deep_learning(args.dataset_name, device, params)
+    strategy = get_strategy(args.strategy_name)(dataset, net, logger)
 
     # start experiment
     start_time = time.time()
@@ -61,7 +71,6 @@ def main(args):
     acc = dataset.cal_test_acc(preds)
     
     logger.warning(f"Round 0 testing accuracy: {acc}")
-    # exit()
     
     all_acc.append(acc)
     all_rounds.append(0)
@@ -141,7 +150,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_results', type=str, default='results/new_dalmax_balanceado_train_10_epochs_', help='Results directory')
+    parser.add_argument('--dir_results', type=str, default='results/dalmax', help='Results directory')
+    parser.add_argument('--params_json', type=str, default='params.json', help='Params JSON file. See example in README.md')
 
     parser.add_argument('--seed', type=int, default=1, help="random seed")
     parser.add_argument('--n_init_labeled', type=int, default=100, help="number of init labeled samples")

@@ -108,6 +108,7 @@ To train the models, run the following command:
         --n_query 1000 \
         --n_init_labeled 10000 \
         --dataset_name DANINHAS \
+        --params_json params.json \
         --strategy_name RandomSampling \
         --seed 1
 ```
@@ -116,11 +117,43 @@ To train the models, run the following command:
 - `n_round`: Number of iterations.
 - `n_query`: Number of samples to be selected in each iteration.
 - `n_init_labeled`: Number of labeled samples in the initial training.
-- `dataset_name`: Name of the dataset. Options: `CIFAR10`, `DANINHAS`.
-- `strategy_name`: Name of the active learning strategy. Options: `RandomSampling`, `LeastConfidence`, `MarginSampling`, `EntropySampling`, `UncertaintySamplingWithDropoutEstimation`, `BayesianActiveLearningDisagreement`, `ClusterBasedSelection`, `AdversarialMargin`.
+- `dataset_name`: Name of the dataset. Options: `CIFAR10`, `DANINHAS`. If not informed, the dataset is `CIFAR10`.
+- `strategy_name`: Name of the active learning strategy. Options: `RandomSampling`, `LeastConfidence`, `MarginSampling`, `EntropySampling`, `LeastConfidenceDropout`, `MarginSamplingDropout`, `EntropySamplingDropout`, `KMeansSampling`, `KCenterGreedy`, `BALDDropout`, `AdversarialBIM`, `AdversarialDeepFool`. If not informed, the strategy is `RandomSampling`.
 - `seed`: Seed for random number generation. Optional. If not informed, the seed is randomly generated.
 - `img_size`: Image size. Optional. If not informed, the image size is 32x32. Example --img_size 64.
+- `params_json`: JSON file with the hyperparameters of the model. If not informed, error occurs. Example --params_json params.json.
 
+##### Hyperparameters
+The hyperparameters of the model are defined in a JSON file. The JSON file must have the following structure:
+```json
+{
+    "YOU_DATASET_NAME": {
+        "n_epoch": 10,
+        "n_drop": 5,
+        "n_classes": 10,
+        "train_args": { "batch_size": 256, "num_workers": 4 },
+        "test_args": { "batch_size": 256, "num_workers": 4 },
+        "optimizer_args": { "lr": 0.05, "momentum": 0.3 }
+    },
+    "CIFAR10": {
+        "n_epoch": 20,
+        "n_drop": 10,
+        "n_classes": 10,
+        "train_args": { "batch_size": 64, "num_workers": 1 },
+        "test_args": { "batch_size": 1000, "num_workers": 1 },
+        "optimizer_args": { "lr": 0.05, "momentum": 0.3 }
+    },
+    "DANINHAS": {
+        "n_epoch": 10,
+        "n_drop": 5,
+        "n_classes": 5,
+        "train_args": { "batch_size": 256, "num_workers": 4 },
+        "test_args": { "batch_size": 256, "num_workers": 4 },
+        "optimizer_args": { "lr": 0.05, "momentum": 0.3 }
+    }
+}
+
+```
 ## License
 
 DalMax is under the MIT License. See the [LICENSE](LICENSE) file for more details.
