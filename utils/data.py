@@ -5,7 +5,9 @@ import torch
 import torch.nn.functional as F
 from torchvision import datasets
 class Data:
-    def __init__(self, X_train, Y_train, X_test, Y_test, handler):
+    def __init__(self, X_train, Y_train, X_test, Y_test, handler, classes, class_to_idx):
+        self.classes = classes
+        self.class_to_idx = class_to_idx
         self.X_train = X_train
         self.Y_train = Y_train
         self.X_test = X_test
@@ -16,6 +18,13 @@ class Data:
         self.n_test = len(X_test)
         
         self.labeled_idxs = np.zeros(self.n_pool, dtype=bool)
+
+        
+    def get_classes_names(self):
+        return self.classes
+    
+    def get_classes_to_idx(self):
+        return self.class_to_idx
         
     def initialize_labels(self, num):
         # generate initial labeled pool
@@ -88,7 +97,7 @@ class Data:
     def get_size_test_data(self):
         handler = self.get_test_data()
         return len(handler)
-
+    
 
 def get_DANINHAS(handler, data_dir, img_size=128):
     """
@@ -129,6 +138,9 @@ def get_DANINHAS(handler, data_dir, img_size=128):
     classes = sorted(os.listdir(train_dir))
     class_to_idx = {class_name: idx for idx, class_name in enumerate(classes)}
 
+    print(f"Classes: {classes}")
+    print(f"Class to index: {class_to_idx}")
+
     # Carregar dados de treino
     X_train, Y_train = load_images_and_labels(train_dir, classes, class_to_idx)
 
@@ -136,7 +148,7 @@ def get_DANINHAS(handler, data_dir, img_size=128):
     X_test, Y_test = load_images_and_labels(test_dir, classes, class_to_idx)
 
     # Criar instância da classe `Data`
-    return Data(X_train, Y_train, X_test, Y_test, handler)
+    return Data(X_train, Y_train, X_test, Y_test, handler, classes, class_to_idx)
 
 def get_CIFAR10(handler, data_dir, img_size=32):
     """

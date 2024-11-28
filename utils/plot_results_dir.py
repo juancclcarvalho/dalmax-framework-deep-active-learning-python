@@ -71,7 +71,6 @@ cores = sns.color_palette("husl", len(dados))
 # Plotar os dados
 for i, (modelo, valores) in enumerate(dados.items()):
     # Excluir os 3 ultimos valores
-    # valores['data'] = valores['data'][:-2]
 
     marcador = marcadores[i % len(marcadores)]  # Reutilizar marcadores se necessário
     if modelo == 'RandomSampling':

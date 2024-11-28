@@ -81,6 +81,25 @@ def main(args):
     logger.warning(f"Round 0 precision: {precision}")
     logger.warning(f"Round 0 recall: {recall}")
     logger.warning(f"Round 0 f1_score: {f1_score}")
+
+    # Plot Confusion matrix: Gera a matriz de confusão em .pdf para o modelo
+    import seaborn as sns
+    from sklearn.metrics import confusion_matrix
+
+    # Get class names from the dataset
+    class_names = dataset.get_classes_names()
+
+    cm = confusion_matrix(dataset.Y_test, preds)
+    plt.figure()
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+    plt.title('Confusion Matrix')
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.savefig(f"{dir_results}/confusion_matrix.pdf")
+    plt.show()
+    plt.close()
+    exit()
+
     
     all_acc.append(acc)
     all_rounds.append(0)

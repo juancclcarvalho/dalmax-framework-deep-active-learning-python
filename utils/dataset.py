@@ -4,6 +4,8 @@ from PIL import Image
 
 class DANINHAS_Hander(Dataset):
     def __init__(self, X, Y):
+        self.classes = None
+        self.class_to_idx = None
         self.X = X
         self.Y = Y
         # self.transform = transforms.Compose([transforms.Resize(224), transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
@@ -31,7 +33,6 @@ class DANINHAS_Hander(Dataset):
     def __len__(self):
         return len(self.X)
     
-
 class CIFAR10_Handler(Dataset):
     def __init__(self, X, Y):
         self.X = X
