@@ -141,7 +141,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_results', type=str, default='results/new_dalmax_train_10_epochs_', help='Results directory')
+    parser.add_argument('--dir_results', type=str, default='results/new_dalmax_balanceado_train_10_epochs_', help='Results directory')
 
     parser.add_argument('--seed', type=int, default=1, help="random seed")
     parser.add_argument('--n_init_labeled', type=int, default=100, help="number of init labeled samples")

@@ -43,7 +43,7 @@ def get_handler(name):
 
 def get_dataset(name):
     if name == 'DANINHAS':
-        return get_DANINHAS(get_handler(name), "DATA/daninhas_full/")
+        return get_DANINHAS(get_handler(name), "DATA/daninhas_balanceado/")
     elif name == 'CIFAR10':
         return get_CIFAR10(get_handler(name), "DATA/DATA_CIFAR10/")
     else:
