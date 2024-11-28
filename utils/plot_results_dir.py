@@ -84,5 +84,5 @@ plt.ylabel("Accuracy", fontsize=12)
 plt.legend(title="Models")
 plt.tight_layout()
 
-plt.savefig(os.path.join(dir_results, "model_comparison_epochs.pdf"))
+plt.savefig(os.path.join(dir_results, "accuracy_model_comparison_epochs.pdf"))
 plt.show()
