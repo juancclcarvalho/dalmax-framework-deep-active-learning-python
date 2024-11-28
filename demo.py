@@ -5,6 +5,11 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Plot Confusion matrix: Gera a matriz de confusão em .pdf para o modelo
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+
+
 import torch
 from utils.orchestrator import get_dataset, get_network_deep_learning, get_strategy
 
@@ -71,8 +76,11 @@ def main(args):
     strategy.train()
     
     preds = strategy.predict(dataset.get_test_data())
+
     acc = dataset.cal_test_acc(preds)
     precision, recall, f1_score = dataset.calc_metrics(preds)
+    
+    all_acc.append(acc)
     all_precision.append(precision)
     all_recall.append(recall)
     all_f1_score.append(f1_score)
@@ -82,27 +90,11 @@ def main(args):
     logger.warning(f"Round 0 recall: {recall}")
     logger.warning(f"Round 0 f1_score: {f1_score}")
 
-    # Plot Confusion matrix: Gera a matriz de confusão em .pdf para o modelo
-    import seaborn as sns
-    from sklearn.metrics import confusion_matrix
-
     # Get class names from the dataset
     class_names = dataset.get_classes_names()
-
-    cm = confusion_matrix(dataset.Y_test, preds)
-    plt.figure(figsize=(10, 7))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
-    plt.title('Confusion Matrix')
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.savefig(f"{dir_results}/confusion_matrix.pdf")
-    plt.show()
-    plt.close()
-    exit()
-
-    
-    all_acc.append(acc)
+    # ADD ROUNDS
     all_rounds.append(0)
+    preds = None 
 
     for rd in range(1, args.n_round+1):
         logger.warning("==========================================================================>")
@@ -142,7 +134,20 @@ def main(args):
         logger.warning(f'Local Rounds: {all_rounds}')
         logger.warning("==========================================================================>")
 
+    cm = confusion_matrix(dataset.Y_test, preds)
+    def plot_confusion_matrix(cm, class_names):
+        fig, ax = plt.subplots(figsize=(10, 7))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names, ax=ax)
+        ax.set_title('Confusion Matrix')
+        ax.set_xlabel('Predicted')
+        ax.set_ylabel('True')
+        ax.set_xticklabels(class_names, rotation=45, ha='right')
+        ax.set_yticklabels(class_names, rotation=45)
+        plt.tight_layout()
+        plt.savefig(f"{dir_results}/confusion_matrix.pdf")
 
+    plot_confusion_matrix(cm, class_names)
+    
     logger.warning(f'Final Accuracies: {all_acc}')
     logger.warning(f'Final Precision: {all_precision}')
     logger.warning(f'Final Recall: {all_recall}')
