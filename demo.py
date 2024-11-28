@@ -21,7 +21,7 @@ def main(args):
     logger.warning(f"DalMax - Training the model with PyTorch...")
 
     # Create results directory
-    dir_results = args.dir_results + f"{args.strategy_name}/"
+    dir_results = args.dir_results + f"{args.n_query}_n_query/{args.strategy_name}/"
     if not os.path.exists(dir_results):
         os.makedirs(dir_results)
 
@@ -141,9 +141,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_results', type=str, default='results/new_dalmax_train_10_epochs_50_n_query/', help='Results directory')
+    parser.add_argument('--dir_results', type=str, default='results/new_dalmax_train_10_epochs_', help='Results directory')
 
-    parser.add_argument('--seed', type=int, default=1, help="random seed")
+    parser.add_argument('--seed', type=int, default=42, help="random seed")
     parser.add_argument('--n_init_labeled', type=int, default=100, help="number of init labeled samples")
     parser.add_argument('--n_query', type=int, default=10, help="number of queries per round")
     parser.add_argument('--n_round', type=int, default=10, help="number of rounds")

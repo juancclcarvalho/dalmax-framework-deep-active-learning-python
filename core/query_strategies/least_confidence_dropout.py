@@ -2,7 +2,7 @@ import numpy as np
 from .strategy import Strategy
 
 class LeastConfidenceDropout(Strategy):
-    def __init__(self, dataset, net, logger, n_drop=10):
+    def __init__(self, dataset, net, logger, n_drop=5):
         super(LeastConfidenceDropout, self).__init__(dataset, net, logger)
         self.n_drop = n_drop
 

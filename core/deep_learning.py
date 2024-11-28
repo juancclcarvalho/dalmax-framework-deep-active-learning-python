@@ -82,7 +82,8 @@ class DeepLearning:
                 probs[idxs] = prob.cpu()
         return probs
     
-    def predict_prob_dropout(self, data, n_drop=10):
+    def predict_prob_dropout(self, data, n_drop=5):
+        print("predict_prob_dropout with n_drop", n_drop)
         self.clf.train()
         probs = torch.zeros([len(data), len(np.unique(data.Y))])
         loader = DataLoader(data, shuffle=False, **self.params['test_args'])
@@ -96,7 +97,8 @@ class DeepLearning:
         probs /= n_drop
         return probs
     
-    def predict_prob_dropout_split(self, data, n_drop=10):
+    def predict_prob_dropout_split(self, data, n_drop=5):
+        print("predict_prob_dropout_split with n_drop", n_drop)
         self.clf.train()
         probs = torch.zeros([n_drop, len(data), len(np.unique(data.Y))])
         loader = DataLoader(data, shuffle=False, **self.params['test_args'])

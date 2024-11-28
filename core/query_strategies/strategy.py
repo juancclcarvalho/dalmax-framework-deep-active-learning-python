@@ -47,12 +47,12 @@ class Strategy:
         probs = self.net.predict_prob(data)
         return probs
 
-    def predict_prob_dropout(self, data, n_drop=10):
+    def predict_prob_dropout(self, data, n_drop=5):
         self.logger.warning(f"Predicting probabilities with the DAL strategy using dropout {n_drop}")
         probs = self.net.predict_prob_dropout(data, n_drop=n_drop)
         return probs
 
-    def predict_prob_dropout_split(self, data, n_drop=10):
+    def predict_prob_dropout_split(self, data, n_drop=5):
         self.logger.warning(f"Predicting probabilities with the DAL strategy using dropout {n_drop} and split")
         probs = self.net.predict_prob_dropout_split(data, n_drop=n_drop)
         return probs
