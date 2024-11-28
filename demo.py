@@ -51,6 +51,9 @@ def main(args):
 
     ## List to store accuracies and rounds
     all_acc = []
+    all_precision = []
+    all_recall = []
+    all_f1_score = []
     all_rounds = []
 
     dataset = get_dataset(args.dataset_name, params)
@@ -69,8 +72,15 @@ def main(args):
     
     preds = strategy.predict(dataset.get_test_data())
     acc = dataset.cal_test_acc(preds)
+    precision, recall, f1_score = dataset.calc_metrics(preds)
+    all_precision.append(precision)
+    all_recall.append(recall)
+    all_f1_score.append(f1_score)
     
     logger.warning(f"Round 0 testing accuracy: {acc}")
+    logger.warning(f"Round 0 precision: {precision}")
+    logger.warning(f"Round 0 recall: {recall}")
+    logger.warning(f"Round 0 f1_score: {f1_score}")
     
     all_acc.append(acc)
     all_rounds.append(0)
@@ -93,18 +103,31 @@ def main(args):
         # calculate accuracy
         preds = strategy.predict(dataset.get_test_data())
         acc = dataset.cal_test_acc(preds)
+        precision, recall, f1_score = dataset.calc_metrics(preds)
+        all_precision.append(precision)
+        all_recall.append(recall)
+        all_f1_score.append(f1_score)
         logger.warning(f"Round {rd} testing accuracy: {acc}")
+        logger.warning(f"Round {rd} precision: {precision}")
+        logger.warning(f"Round {rd} recall: {recall}")
+        logger.warning(f"Round {rd} f1_score: {f1_score}")
 
         all_acc.append(acc)
         all_rounds.append(rd)
 
-        # Print acc and rounds
+        # Print acc, precision, recall and f1-score
         logger.warning(f'Local Accuracies: {all_acc}')
+        logger.warning(f'Local Precision: {all_precision}')
+        logger.warning(f'Local Recall: {all_recall}')
+        logger.warning(f'Local F1-Score: {all_f1_score}')
         logger.warning(f'Local Rounds: {all_rounds}')
         logger.warning("==========================================================================>")
 
 
     logger.warning(f'Final Accuracies: {all_acc}')
+    logger.warning(f'Final Precision: {all_precision}')
+    logger.warning(f'Final Recall: {all_recall}')
+    logger.warning(f'Final F1-Score: {all_f1_score}')
     logger.warning(f'Final Rounds: {all_rounds}')
 
     end_time = time.time()
@@ -112,15 +135,23 @@ def main(args):
     logger.warning(f"Total time: {final_time_in_seconds} seconds")
     logger.warning("==========================================================================>")
     
-    # Plotar um grafico de acc x rounds
-    plt.plot(all_rounds, all_acc)
-    plt.xlabel("Rounds")
-    plt.ylabel("Accuracy")
-    plt.title(f"{args.strategy_name} - {args.dataset_name}")
+    def plot_metrics(data, title, ylabel, filename):
+        plt.figure()
+        plt.plot(all_rounds, data, marker='o')
+        plt.title(title)
+        plt.xlabel('Rounds')
+        plt.ylabel(ylabel)
+        plt.grid()
+        plt.savefig(filename)
+        plt.close()
+    
+    # Plot accuracies: acc, precision, recall and f1-score
+    plot_metrics(all_acc, 'Accuracy', 'Accuracy', f"{dir_results}/accuracy.pdf")
+    plot_metrics(all_precision, 'Precision', 'Precision', f"{dir_results}/precision.pdf")
+    plot_metrics(all_recall, 'Recall', 'Recall', f"{dir_results}/recall.pdf")
+    plot_metrics(all_f1_score, 'F1-Score', 'F1-Score', f"{dir_results}/f1_score.pdf")
 
-    plt.savefig(f"{args.strategy_name}_{args.dataset_name}.pdf")
     # Move generated files to results directory
-    os.rename(f"{args.strategy_name}_{args.dataset_name}.pdf", f"{dir_results}/{args.strategy_name}_{args.dataset_name}.pdf")
     os.rename(path_logger, dir_results + "/log-dalmax.log")
 
     # Save the model
@@ -137,7 +168,10 @@ def main(args):
         'n_round': args.n_round,
         'seed': args.seed,
         
-        'data': all_acc,
+        'all_acc': all_acc,
+        'all_precision': all_precision,
+        'all_recall': all_recall,
+        'all_f1_score': all_f1_score,
         'rounds': all_rounds,
     }
 

@@ -49,6 +49,29 @@ class Data:
 
         # Calcular a precisão
         return 1.0 * (self.Y_test == preds).sum().item() / self.n_test
+    
+    # Calcular a precision, recall e f1-score
+    def calc_metrics(self, preds):
+        # Converter self.Y_test para tensor caso seja um array NumPy
+        if isinstance(self.Y_test, np.ndarray):
+            self.Y_test = torch.from_numpy(self.Y_test).to(torch.int64)
+        else:
+            self.Y_test = self.Y_test.to(torch.int64)
+        
+        # Converter preds para tensor caso seja um array NumPy
+        preds = torch.from_numpy(preds).to(torch.int64) if isinstance(preds, np.ndarray) else preds.to(torch.int64)
+
+        # Calcular a precisão, recall e f1-score
+        TP = (preds & self.Y_test).sum().item()
+        TN = ((~preds) & (~self.Y_test)).sum().item()
+        FP = (preds & (~self.Y_test)).sum().item()
+        FN = ((~preds) & self.Y_test).sum().item()
+        
+        precision = TP / (TP + FP) if TP + FP > 0 else 0
+        recall = TP / (TP + FN) if TP + FN > 0 else 0
+        f1_score = 2 * (precision * recall) / (precision + recall) if precision + recall > 0 else 0
+        
+        return precision, recall, f1_score
 
     def get_size_pool_unlabeled(self):
         unlabeled_idxs, handler = self.get_unlabeled_data()
