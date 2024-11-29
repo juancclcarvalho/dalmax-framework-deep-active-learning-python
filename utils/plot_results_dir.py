@@ -86,3 +86,6 @@ plt.tight_layout()
 
 plt.savefig(os.path.join(dir_results, "accuracy_model_comparison_epochs.pdf"))
 plt.show()
+
+
+# Example usage: python utils/plot_results_dir.py --dir_input results/new_dalmax_balanceado_train_10_epochs_10_n_query

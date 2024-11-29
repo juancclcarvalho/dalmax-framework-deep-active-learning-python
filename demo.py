@@ -22,13 +22,22 @@ path_logger = get_path_logger()
 
 def main(args):
     # Train model with PyTorch
+    logger.warning("==========================================================================>")
     logger.warning(f"DalMax - Training the model with PyTorch...")
-    logger.warning(vars(args))
+    logger.warning("==========================================================================>")
+
+    logger.warning("ARGUMENTS (cli) AND PARAMETERS (json)")
+    logger.warning("--------------------------------------------------------------------------")
+
+    logger.warning("ARGS: " + json.dumps(vars(args), indent=4))
+    logger.warning("--------------------------------------------------------------------------")
 
     # SETUP HYPERPARAMETERS
     params = None
     with open(args.params_json, "r") as f:
         params = json.load(f)
+    logger.warning("PARAMS: " + json.dumps(params[args.dataset_name], indent=4))
+    logger.warning("--------------------------------------------------------------------------")
 
     n_epoch = params[args.dataset_name]['n_epoch']
     data_dir = params[args.dataset_name]['data_dir']

@@ -1,11 +1,14 @@
-import os
-from pathlib import Path
+test1 = { "testname" : "akshat",
+		"test2name" : "manjeet",
+		"test3name" : "nikhil"}
 
-'''
-eu tenho um caminho de pasta: path/folder1
-Eu quero retornar apenas o folder1. Porem, se eu uso o os.path e uso o base name funciona. Mas nao funciona no caso que 
-tem uma barra no final. Entao, eu preciso retornar exatamente o nome da pasta, sem a barra no final.
-'''
-path = "path/folder1"
-print(os.path.basename(path))
-print(os.path.basename(path.rstrip("/")))
+# print original dictionary
+print (type(test1))
+print ("initial dictionary = ", test1)
+
+# convert dictionary into string
+result = str(test1)
+
+# print resulting string
+print ("\n", type(result))
+print ("final string = ", result)
