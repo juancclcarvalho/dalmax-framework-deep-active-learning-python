@@ -1,14 +1,23 @@
-test1 = { "testname" : "akshat",
-		"test2name" : "manjeet",
-		"test3name" : "nikhil"}
+import os
+import glob
 
-# print original dictionary
-print (type(test1))
-print ("initial dictionary = ", test1)
+def list_folders_with_pattern(initial_path, pattern="*"):
+    """Lists folders within a given path that match a specific pattern.
 
-# convert dictionary into string
-result = str(test1)
+    Args:
+        initial_path: The initial directory path.
+        pattern: The pattern to match (default is '*', matching all).
 
-# print resulting string
-print ("\n", type(result))
-print ("final string = ", result)
+    Returns:
+        A list of folder paths that match the pattern.
+    """
+
+    matching_files = glob.glob(os.path.join(initial_path, pattern))
+    # Filter only folders
+    folders = [file for file in matching_files if os.path.isdir(file)]
+    return folders
+
+# Example usage:
+path = "results/dalmax/daninhas_balanceado/"
+pattern = "SEED*"  # List only folders starting with "SEED"
+print(list_folders_with_pattern(path, pattern))
