@@ -242,10 +242,13 @@ def save_plot(new_data_config, is_show=False):
 
         for i, (method, values) in enumerate(data.items()):
             marker = markers[i % len(markers)]
+            plt.plot(local_rounds, values[value], label=method, color=colors[i], marker=marker, markersize=8, linestyle='-')
+            '''
             if method == 'RandomSampling':
                 plt.plot(local_rounds, values[value], label=method, color=colors[i], marker=marker, markersize=8, linestyle='-')
             else:
                 plt.plot(local_rounds, values[value], label=method, color=colors[i])
+            '''
         
         plt.title("Model comparison", fontsize=14)
         plt.xlabel("Rounds", fontsize=12)
