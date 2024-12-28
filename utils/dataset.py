@@ -26,7 +26,7 @@ class DANINHAS_Hander(Dataset):
         '''
     def __getitem__(self, index):
         x, y = self.X[index], self.Y[index]
-        x = Image.fromarray(x)
+        x = Image.open(x)
         x = self.transform(x)
         return x, y, index
 

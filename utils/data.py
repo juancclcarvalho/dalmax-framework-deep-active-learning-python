@@ -121,13 +121,7 @@ def get_DANINHAS(handler, data_dir, img_size=128):
                 continue
             for img_name in os.listdir(class_dir):
                 img_path = os.path.join(class_dir, img_name)
-                try:
-                    # Carregar e redimensionar imagem
-                    img = Image.open(img_path).convert("RGB").resize((img_size, img_size))
-                    images.append(np.array(img))  # Converter para array numpy
-                    labels.append(class_to_idx[class_name])  # Obter índice da classe
-                except Exception as e:
-                    print(f"Erro ao carregar a imagem {img_path}: {e}")
+                labels.append(class_to_idx[class_name])
         return np.array(images), np.array(labels)
 
     # Diretórios de treino e teste
